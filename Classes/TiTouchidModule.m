@@ -34,6 +34,8 @@
 {
 	[super startup];
 	NSLog(@"[INFO] %@ loaded",self);
+	[self setIOS8_orAbove: [UIViewController instancesRespondToSelector:@selector(showDetailViewController:sender:)]];
+
 }
 
 -(void)shutdown:(id)sender
@@ -49,6 +51,11 @@
 }
 
 #pragma mark Public API
+
+-(NSNumber*)isAPIAvailable:(id)args
+{
+	return NUMBOOL([self iOS8_orAbove]);
+}
 
 /**
  * To be used this way:
@@ -76,7 +83,17 @@
 		NSLog(@"\"callback\" must be a function");
 		return;
 	}
-
+	if(![self iOS8_orAbove])
+	{
+		TiThreadPerformOnMainThread(^{
+			NSMutableDictionary *event = [NSMutableDictionary dictionary];
+			[event setValue:@"This API is only available in iOS 8 and above" forKey:@"error"];
+			[event setValue:NUMLONG(0.0) forKey:@"code"];
+			[event setValue:NUMBOOL(NO) forKey:@"success"];
+			[callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
+		}, NO);
+		return;
+	}
 	LAContext *myContext = [[[LAContext alloc] init] autorelease];
 	NSError *authError = nil;
 	
@@ -115,31 +132,52 @@
 
 -(NSNumber*)ERROR_AUTHENTICATION_FAILED
 {
-	return NUMINT(LAErrorAuthenticationFailed);
+	if([self iOS8_orAbove]) {
+		return NUMINT(LAErrorAuthenticationFailed);
+	}
+	return NUMINT(-1);
 }
 -(NSNumber*)ERROR_USER_CANCEL
 {
-	return NUMINT(LAErrorUserCancel);
+	if([self iOS8_orAbove]) {
+		return NUMINT(LAErrorUserCancel);
+	}
+	return NUMINT(-2);
 }
 -(NSNumber*)ERROR_USER_FALLBACK
 {
-	return NUMINT(LAErrorUserFallback);
+	if([self iOS8_orAbove]) {
+		return NUMINT(LAErrorUserFallback);
+	}
+	return NUMINT(-3);
 }
 -(NSNumber*)ERROR_SYSTEM_CANCEL
 {
-	return NUMINT(LAErrorSystemCancel);
+	if([self iOS8_orAbove]) {
+		return NUMINT(LAErrorSystemCancel);
+	}
+	return NUMINT(-4);
 }
 -(NSNumber*)ERROR_PASSCODE_NOT_SET
 {
-	return NUMINT(LAErrorPasscodeNotSet);
+	if([self iOS8_orAbove]) {
+		return NUMINT(LAErrorPasscodeNotSet);
+	}
+	return NUMINT(-5);
 }
 -(NSNumber*)ERROR_TOUCH_ID_NOT_AVAILABLE
 {
-	return NUMINT(LAErrorTouchIDNotAvailable);
+	if([self iOS8_orAbove]) {
+		return NUMINT(LAErrorTouchIDNotAvailable);
+	}
+	return NUMINT(-6);
 }
 -(NSNumber*)ERROR_TOUCH_ID_NOT_ENROLLED
 {
-	return NUMINT(LAErrorTouchIDNotEnrolled);
+	if([self iOS8_orAbove]) {
+		return NUMINT(LAErrorTouchIDNotEnrolled);
+	}
+	return NUMINT(-7);
 }
 
 @end
