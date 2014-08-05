@@ -63,7 +63,7 @@
  * var TiTouchId = require('ti.touchid');
  *	
  * TiTouchId.authenticate({
- *     reason: 'We need your finprint to continue.',
+ *     reason: 'We need your fingerprint to continue.',
  *     callback: function(e) {
  *         if (!e.success) {
  *             alert('Message: ' + e.error + '\nCode: ' + e.code);
