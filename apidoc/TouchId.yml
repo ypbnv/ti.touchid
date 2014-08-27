@@ -46,7 +46,8 @@ description: |
 
     ### Sample Application
 
-    The module contains a sample application in the `examples` folder.
+    The module contains a sample application in the
+    `<TITANIUM_SDK_HOME>/modules/iphone/ti.touchid/<VERSION>/example/` folder.
 
 methods:
   - name: authenticate
