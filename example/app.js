@@ -8,7 +8,7 @@
 
 // WARNING!
 //
-// THIS IS AN EXPERIMENTAL MODULE AND WILL ONLY RUN ON AN IOS 8 DEVICE
+// THIS MODULE WILL ONLY RUN ON AN IOS 8 DEVICE
 // 
 
 var TiTouchId = require('ti.touchid');
@@ -40,7 +40,7 @@ btn.addEventListener('click', function(){
 					default: Ti.API.info('Error code is unknown'); break;
 				}  
 			} else {
-			  // do something useful
+			  	// do something useful
 				alert('YAY! success');
 			}
 		}
