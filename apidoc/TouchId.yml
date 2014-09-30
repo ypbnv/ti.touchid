@@ -67,6 +67,19 @@ methods:
                   * `code` (Number): Module `ERROR_*` constant indicating the reason for the failure.
         type: Dictionary
 
+  - name: deviceCanAuthenticate
+    summary: Checks to see if device is configured for Touch ID authentication.
+    description: |
+      var TiTouchId = require("ti.touchid");
+      var result = TiTouchId.deviceCanAuthenticate();
+      if (!result.canAuthenticate) {
+        alert('Message: ' + result.error + '\nCode: ' + result.code);  
+        } else {
+          alert('device can authenticate');
+        }
+
+    type: DeviceAuthenticationResult
+
 properties:
 
   - name: ERROR_AUTHENTICATION_FAILED
@@ -105,3 +118,19 @@ properties:
     summary: Constant indicating that the user tapped the fallback button to enter their passcode.
     type: Number
     permission: read-only
+
+---
+name: DeviceAuthenticationResult
+summary: Dictionary containing results for <ti.touchid.deviceCanAuthenticate>.
+properties:
+  - name: canAuthenticate 
+    summary: Set to true if device is configured for touch ID authentication.
+    type: Boolean
+
+  - name: error
+    summary: System error message if any.
+    type: String
+
+  - name: code
+    summary: Module `ERROR_*` constant indicating the reason for the failure if any.
+    type: Number

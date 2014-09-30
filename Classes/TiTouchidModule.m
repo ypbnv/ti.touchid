@@ -75,7 +75,7 @@
  */
 -(void)authenticate:(id)args
 {
-	ENSURE_SINGLE_ARG(args, NSDictionary)
+	ENSURE_SINGLE_ARG(args, NSDictionary);
 	NSString *reason = [TiUtils stringValue:[args valueForKey:@"reason"]];
 	KrollCallback *callback = [args valueForKey:@"callback"];
 
@@ -128,6 +128,27 @@
 		[event setValue:NUMBOOL(NO) forKey:@"success"];
 		[callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
 	}, NO);
+}
+
+-(NSDictionary*)deviceCanAuthenticate:(id)args
+{
+	if(![self iOS8_orAbove]) {
+		NSDictionary * versionResult = [NSDictionary dictionaryWithObjectsAndKeys:
+										@"This API is only available in iOS 8 and above",@"error",
+										NUMLONG(0.0),@"code",
+										NUMBOOL(NO),@"canAuthenticate",nil];
+		return versionResult;
+	}
+	LAContext *myContext = [[[LAContext alloc] init] autorelease];
+	NSError *authError = nil;
+	BOOL canAuthenticate = [myContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError];
+	NSMutableDictionary *result = [NSMutableDictionary dictionary];
+	if(authError != nil) {
+		[result setValue:[TiUtils messageFromError:authError] forKey:@"error"];
+		[result setValue:NUMLONG([authError code]) forKey:@"code"];
+	}
+	[result setValue:NUMBOOL(canAuthenticate) forKey:@"canAuthenticate"];
+	return result;
 }
 
 -(NSNumber*)ERROR_AUTHENTICATION_FAILED
