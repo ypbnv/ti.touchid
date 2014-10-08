@@ -79,6 +79,7 @@ methods:
         }
 
     type: DeviceAuthenticationResult
+    since: "3.4.1"
 
 properties:
 

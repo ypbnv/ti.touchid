@@ -135,7 +135,7 @@
 	if(![self iOS8_orAbove]) {
 		NSDictionary * versionResult = [NSDictionary dictionaryWithObjectsAndKeys:
 						@"This API is only available in iOS 8 and above",@"error",
-						NUMLONG(0.0),@"code",
+						[self ERROR_TOUCH_ID_NOT_AVAILABLE],@"code",
 						NUMBOOL(NO),@"canAuthenticate",nil];
 		return versionResult;
 	}
@@ -145,7 +145,7 @@
 	NSMutableDictionary *result = [NSMutableDictionary dictionary];
 	if(authError != nil) {
 		[result setValue:[TiUtils messageFromError:authError] forKey:@"error"];
-		[result setValue:NUMLONG([authError code]) forKey:@"code"];
+		[result setValue:NUMINT([authError code]) forKey:@"code"];
 	}
 	[result setValue:NUMBOOL(canAuthenticate) forKey:@"canAuthenticate"];
 	return result;
