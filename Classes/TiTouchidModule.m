@@ -88,7 +88,7 @@
 		TiThreadPerformOnMainThread(^{
 			NSMutableDictionary *event = [NSMutableDictionary dictionary];
 			[event setValue:@"This API is only available in iOS 8 and above" forKey:@"error"];
-			[event setValue:NUMLONG(0.0) forKey:@"code"];
+			[event setValue:[self ERROR_TOUCH_ID_NOT_AVAILABLE] forKey:@"code"];
 			[event setValue:NUMBOOL(NO) forKey:@"success"];
 			[callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
 		}, NO);
@@ -106,7 +106,7 @@
 			 NSMutableDictionary *event = [NSMutableDictionary dictionary];
 			 if(error != nil) {
 				 [event setValue:[error localizedDescription] forKey:@"error"];
-				 [event setValue:NUMLONG([error code]) forKey:@"code"];
+				 [event setValue:NUMINT([error code]) forKey:@"code"];
 			 }
 			 [event setValue:NUMBOOL(succes) forKey:@"success"];
 			 [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
@@ -120,10 +120,10 @@
 		NSMutableDictionary *event = [NSMutableDictionary dictionary];
 		if(authError != nil) {
 			[event setValue:[authError localizedDescription] forKey:@"error"];
-			[event setValue:NUMLONG([authError code]) forKey:@"code"];
+			[event setValue:NUMINT([authError code]) forKey:@"code"];
 		} else {
 			[event setValue:@"Can not evaluate Touch ID" forKey:@"error"];
-			[event setValue:NUMLONG(0.0) forKey:@"code"];
+			[event setValue:NUMINT(0.0) forKey:@"code"];
 		}
 		[event setValue:NUMBOOL(NO) forKey:@"success"];
 		[callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
