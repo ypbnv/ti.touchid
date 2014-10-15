@@ -77,9 +77,8 @@ methods:
         } else {
           alert('device can authenticate');
         }
-
-    type: DeviceCanAuthenticateResult
-    since: "1.0.1"
+    returns:
+        type: DeviceCanAuthenticateResult
 
 properties:
 
@@ -122,6 +121,8 @@ properties:
 
 ---
 name: DeviceCanAuthenticateResult
+platforms: [iphone, ipad]
+since: "1.0.1"
 summary: Dictionary containing results for <ti.touchid.deviceCanAuthenticate>.
 properties:
   - name: canAuthenticate 
