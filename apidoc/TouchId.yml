@@ -78,8 +78,8 @@ methods:
           alert('device can authenticate');
         }
 
-    type: DeviceAuthenticationResult
-    since: "3.4.1"
+    type: DeviceCanAuthenticateResult
+    since: "1.0.1"
 
 properties:
 
@@ -121,7 +121,7 @@ properties:
     permission: read-only
 
 ---
-name: DeviceAuthenticationResult
+name: DeviceCanAuthenticateResult
 summary: Dictionary containing results for <ti.touchid.deviceCanAuthenticate>.
 properties:
   - name: canAuthenticate 
