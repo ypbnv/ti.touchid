@@ -2,12 +2,12 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 1.0
+version: 1.0.1
 apiversion: 2
 description: TouchId Module
-author: Pedro Enrique
+author: Pedro Enrique & CheeKiat Ng
 license: Apache License, Version 2.0
-copyright: Appcelerator
+copyright: Copyright (c) 2014 by Appcelerator, Inc.
 
 
 # these should not be edited
