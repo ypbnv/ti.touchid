@@ -1,0 +1,6 @@
+# Change Log
+<pre>
+
+v1.1.0 [TIMOB-17928] Updated to build for 64-bit
+
+v1.0 inital implementation
