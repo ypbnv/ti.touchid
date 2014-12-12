@@ -16,4 +16,4 @@ name: TouchID
 moduleid: ti.touchid
 guid: 0ee4118b-68f9-47c6-8c37-d68778ecb806
 platform: iphone
-minsdk: 3.4.1
+minsdk: 3.4.1.GA
