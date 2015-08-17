@@ -35,6 +35,7 @@
 	[super startup];
 	NSLog(@"[INFO] %@ loaded",self);
 	[self setIOS8_orAbove: [UIViewController instancesRespondToSelector:@selector(showDetailViewController:sender:)]];
+	[self setIOS9_orAbove: [UIImage instancesRespondToSelector:@selector(flipsForRightToLeftLayoutDirection)]];
 
 }
 
@@ -200,6 +201,26 @@
 	}
 	return NUMINT(-7);
 }
-
+-(NSNumber*)ERROR_APP_CANCELLED
+{
+    if([self iOS9_orAbove]) {
+        return NUMINT(LAErrorAppCancel);
+    }
+    return NUMINT(-8);
+}
+-(NSNumber*)ERROR_INVALID_CONTEXT
+{
+    if([self iOS9_orAbove]) {
+        return NUMINT(LAErrorInvalidContext);
+    }
+    return NUMINT(-9);
+}
+-(NSNumber*)ERROR_TOUCH_ID_LOCKOUT
+{
+    if([self iOS9_orAbove]) {
+        return NUMINT(LAErrorTouchIDLockout);
+    }
+    return NUMINT(-10);
+}
 @end
 

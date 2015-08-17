@@ -13,4 +13,5 @@
 }
 
 @property(nonatomic) BOOL iOS8_orAbove;
+@property(nonatomic) BOOL iOS9_orAbove;
 @end
