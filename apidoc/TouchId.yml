@@ -119,6 +119,20 @@ properties:
     type: Number
     permission: read-only
 
+  - name: ERROR_APP_CANCELLED
+    summary: Constant indicating that the app cancelled authentication.
+    type: Number
+    permission: read-only
+
+  - name: ERROR_INVALID_CONTEXT
+    summary: Constant indicating that there is an invalid context.
+    type: Number
+    permission: read-only
+
+  - name: ERROR_TOUCH_ID_LOCKOUT
+    summary: Constant indicating that Touch ID has locked out.
+    type: Number
+    permission: read-only
 ---
 name: DeviceCanAuthenticateResult
 platforms: [iphone, ipad]

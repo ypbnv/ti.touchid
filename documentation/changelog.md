@@ -1,5 +1,7 @@
 # Change Log
 <pre>
+v1.1.2 added new iOS9 errors [TIMOB-19352]
+
 v1.1.1 added .travis.yml file
 
 v1.1.0 Updated to build for 64-bit [TIMOB-17928]
