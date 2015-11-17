@@ -3,13 +3,13 @@
  * Copyright (c) 2009-2014 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
- * 
+ *
  */
 
 // WARNING!
 //
 // THIS MODULE WILL ONLY RUN ON AN IOS 8 DEVICE
-// 
+//
 
 var TiTouchId = require('ti.touchid');
 
@@ -24,6 +24,11 @@ win.open();
 
 btn.addEventListener('click', function(){
 
+	if(!TiTouchId.isSupported()) {
+		alert("Touch ID is not supported on this device!");
+		return;
+	}
+	
 	TiTouchId.authenticate({
 		reason: 'We need your fingerprint to continue.',
 		callback: function(e) {
@@ -38,7 +43,7 @@ btn.addEventListener('click', function(){
 					case TiTouchId.ERROR_TOUCH_ID_NOT_AVAILABLE: Ti.API.info('Error code is TiTouchId.ERROR_TOUCH_ID_NOT_AVAILABLE'); break;
 					case TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED: Ti.API.info('Error code is TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED'); break;
 					default: Ti.API.info('Error code is unknown'); break;
-				}  
+				}
 			} else {
 			  	// do something useful
 				alert('YAY! success');

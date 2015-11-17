@@ -80,6 +80,10 @@ methods:
     returns:
         type: DeviceCanAuthenticateResult
 
+  - name: isSupported
+    summary: Determines if the current device supports Touch ID.
+    type: Boolean
+
 properties:
 
   - name: ERROR_AUTHENTICATION_FAILED

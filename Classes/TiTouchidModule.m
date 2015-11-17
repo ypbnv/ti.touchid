@@ -6,7 +6,6 @@
  *
  */
 
-
 #import <LocalAuthentication/LocalAuthentication.h>
 
 #import "TiTouchidModule.h"
@@ -34,9 +33,6 @@
 {
 	[super startup];
 	NSLog(@"[INFO] %@ loaded",self);
-	[self setIOS8_orAbove: [UIViewController instancesRespondToSelector:@selector(showDetailViewController:sender:)]];
-	[self setIOS9_orAbove: [UIImage instancesRespondToSelector:@selector(flipsForRightToLeftLayoutDirection)]];
-
 }
 
 -(void)shutdown:(id)sender
@@ -53,9 +49,9 @@
 
 #pragma mark Public API
 
--(NSNumber*)isAPIAvailable:(id)args
+-(NSNumber*)isSupported:(id)unused
 {
-	return NUMBOOL([self iOS8_orAbove]);
+	return NUMBOOL([TiUtils isIOS8OrGreater]);
 }
 
 /**
@@ -81,10 +77,10 @@
 	KrollCallback *callback = [args valueForKey:@"callback"];
 
 	if(![callback isKindOfClass:[KrollCallback class]]) {
-		NSLog(@"\"callback\" must be a function");
+		NSLog(@"[WARN] Ti.TouchID: \"callback\" must be a function");
 		return;
 	}
-	if(![self iOS8_orAbove])
+	if(![TiUtils isIOS8OrGreater])
 	{
 		TiThreadPerformOnMainThread(^{
 			NSMutableDictionary *event = [NSMutableDictionary dictionary];
@@ -133,7 +129,7 @@
 
 -(NSDictionary*)deviceCanAuthenticate:(id)args
 {
-	if(![self iOS8_orAbove]) {
+	if(![TiUtils isIOS8OrGreater]) {
 		NSDictionary * versionResult = [NSDictionary dictionaryWithObjectsAndKeys:
 						@"This API is only available in iOS 8 and above",@"error",
 						[self ERROR_TOUCH_ID_NOT_AVAILABLE],@"code",
@@ -152,72 +148,74 @@
 	return result;
 }
 
+#pragma mark Constants
+
 -(NSNumber*)ERROR_AUTHENTICATION_FAILED
 {
-	if([self iOS8_orAbove]) {
+	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorAuthenticationFailed);
 	}
 	return NUMINT(-1);
 }
 -(NSNumber*)ERROR_USER_CANCEL
 {
-	if([self iOS8_orAbove]) {
+	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorUserCancel);
 	}
 	return NUMINT(-2);
 }
 -(NSNumber*)ERROR_USER_FALLBACK
 {
-	if([self iOS8_orAbove]) {
+	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorUserFallback);
 	}
 	return NUMINT(-3);
 }
 -(NSNumber*)ERROR_SYSTEM_CANCEL
 {
-	if([self iOS8_orAbove]) {
+	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorSystemCancel);
 	}
 	return NUMINT(-4);
 }
 -(NSNumber*)ERROR_PASSCODE_NOT_SET
 {
-	if([self iOS8_orAbove]) {
+	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorPasscodeNotSet);
 	}
 	return NUMINT(-5);
 }
 -(NSNumber*)ERROR_TOUCH_ID_NOT_AVAILABLE
 {
-	if([self iOS8_orAbove]) {
+	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorTouchIDNotAvailable);
 	}
 	return NUMINT(-6);
 }
 -(NSNumber*)ERROR_TOUCH_ID_NOT_ENROLLED
 {
-	if([self iOS8_orAbove]) {
+	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorTouchIDNotEnrolled);
 	}
 	return NUMINT(-7);
 }
 -(NSNumber*)ERROR_APP_CANCELLED
 {
-    if([self iOS9_orAbove]) {
+    if([TiUtils isIOS9OrGreater]) {
         return NUMINT(LAErrorAppCancel);
     }
     return NUMINT(-8);
 }
 -(NSNumber*)ERROR_INVALID_CONTEXT
 {
-    if([self iOS9_orAbove]) {
+    if([TiUtils isIOS9OrGreater]) {
         return NUMINT(LAErrorInvalidContext);
     }
     return NUMINT(-9);
 }
 -(NSNumber*)ERROR_TOUCH_ID_LOCKOUT
 {
-    if([self iOS9_orAbove]) {
+    if([TiUtils isIOS9OrGreater]) {
         return NUMINT(LAErrorTouchIDLockout);
     }
     return NUMINT(-10);

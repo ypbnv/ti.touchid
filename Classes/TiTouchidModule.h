@@ -8,10 +8,23 @@
 
 #import "TiModule.h"
 
-@interface TiTouchidModule : TiModule 
-{
-}
+@interface TiTouchidModule : TiModule
 
-@property(nonatomic) BOOL iOS8_orAbove;
-@property(nonatomic) BOOL iOS9_orAbove;
+/**
+ Determines if the current device supports Touch ID.
+ @return YES if the current device supports Touch ID, NO otherwise.
+ */
+-(NSNumber*)isSupported:(id)unused;
+
+/**
+ Authenticates the user.
+ */
+-(void)authenticate:(id)args;
+
+/**
+ Determines if the current device currently can authenticate with Touch ID.
+ @return `NSDictionary` that contains infos about the device authentication.
+ */
+-(NSDictionary*)deviceCanAuthenticate:(id)args;
+
 @end
