@@ -16,4 +16,4 @@ name: touchid
 moduleid: ti.touchid
 guid: f0d8fd44-86d2-4730-b67d-bd454577aeee
 platform: android
-minsdk: 5.2.0
+minsdk: 5.4.0

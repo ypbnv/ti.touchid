@@ -1,7 +1,7 @@
 name: Modules.TouchId
 summary: Allows a Titanium application to use the iOS Touch ID authentication mechanism.
-platforms: [iphone, ipad]
-since: "3.4.0"
+platforms: [iphone, ipad, android]
+since: {iphone: "3.4.0", ipad: "3.4.0", android: "5.4.0"}
 extends: Titanium.Module
 description: |
     Touch ID is a security mechanism that uses a fingerprint to authenticate the user. The
@@ -58,7 +58,7 @@ methods:
             Dictionary containing two properties:
 
               * `reason` (String): Message displayed in the authentication dialog describing why the
-                application is requesting authentication.
+                application is requesting authentication. This is for iOS only.
               * `callback` (Function): Callback function executed after the authentication
                 completes. The callback function is passed a dictionary with three properties:
 
@@ -90,21 +90,26 @@ properties:
     summary: Constant indicating that the authentication was not successful.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
 
   - name: ERROR_PASSCODE_NOT_SET
     summary: Constant indicating that the passcode is not set for the device.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
+    
 
   - name: ERROR_TOUCH_ID_NOT_AVAILABLE
     summary: Constant indicating that Touch ID is not available on the device.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
 
   - name: ERROR_TOUCH_ID_NOT_ENROLLED
     summary: Constant indicating that Touch ID does not have any enrolled fingerprints.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
 
   - name: ERROR_SYSTEM_CANCEL
     summary: |
@@ -112,34 +117,41 @@ properties:
         application enters the foreground.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
 
   - name: ERROR_USER_CANCEL
     summary: Constant indicating that the user canceled authentication.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
 
   - name: ERROR_USER_FALLBACK
     summary: Constant indicating that the user tapped the fallback button to enter their passcode.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
 
   - name: ERROR_APP_CANCELLED
     summary: Constant indicating that the app cancelled authentication.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
 
   - name: ERROR_INVALID_CONTEXT
     summary: Constant indicating that there is an invalid context.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
 
   - name: ERROR_TOUCH_ID_LOCKOUT
     summary: Constant indicating that Touch ID has locked out.
     type: Number
     permission: read-only
+    platforms: [iphone, ipad]
+    
 ---
 name: DeviceCanAuthenticateResult
-platforms: [iphone, ipad]
+platforms: [android, iphone, ipad]
 since: "1.0.1"
 summary: Dictionary containing results for <ti.touchid.deviceCanAuthenticate>.
 properties:
@@ -152,5 +164,5 @@ properties:
     type: String
 
   - name: code
-    summary: Module `ERROR_*` constant indicating the reason for the failure if any.
+    summary: iOS only, Module `ERROR_*` constant indicating the reason for the failure if any.
     type: Number

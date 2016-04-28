@@ -71,15 +71,24 @@ public class TouchidModule extends KrollModule
 		}
 
 		String[] permissions = new String[]{Manifest.permission.USE_FINGERPRINT};
-		//TiBaseActivity.registerPermissionRequestCallback(PERMISSION_CODE_FINGERPRINT,permissionCallback, getKrollObject());
+		TiBaseActivity.registerPermissionRequestCallback(PERMISSION_CODE_FINGERPRINT,permissionCallback, getKrollObject());
 
 		Activity currentActivity = TiApplication.getInstance().getCurrentActivity();
 		currentActivity.requestPermissions(permissions, PERMISSION_CODE_FINGERPRINT);
 	}
 
 	@Kroll.method
-	public void authenticate(String reason, @Kroll.argument(optional=true)KrollFunction permissionCallback) {
-		mfingerprintHelper.startListening(permissionCallback, getKrollObject());
+	public void authenticate(HashMap params) {
+		if (params == null) {
+			return;
+		}
+		if (params.containsKey("callback")) {
+			Object callback = params.get("callback");
+			if (callback instanceof KrollFunction) {
+				mfingerprintHelper.startListening((KrollFunction)callback, getKrollObject());
+
+			}
+		}
 	}
 
 	@Kroll.method
