@@ -97,13 +97,13 @@ public class TouchidModule extends KrollModule
 	public boolean isSupported() {
 		return mfingerprintHelper.isDeviceSupported();
 	}
-
+	
 	@Override
 	public void onPause(Activity activity) {
-		super(activity);
+		super.onPause(activity);	
 		if (mfingerprintHelper != null) {
 			mfingerprintHelper.stopListening();
-		}
+		}	
 	}
 
 
