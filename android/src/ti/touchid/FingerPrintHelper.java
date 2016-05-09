@@ -54,11 +54,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 					+ KeyProperties.BLOCK_MODE_CBC + "/"
 					+ KeyProperties.ENCRYPTION_PADDING_PKCS7);
 			createKey();
-			if (initCipher()) {
-				mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
-			} else {
-				Log.e(TAG, "Unable to initialize cipher");
-			}
+			
 		} catch (KeyStoreException e) {
 			throw new RuntimeException("Failed to get an instance of KeyStore", e);
 		} catch (Exception e) {
@@ -84,6 +80,15 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 	public void startListening(KrollFunction callback, KrollObject obj) {
 		if (!(mFingerprintManager.isHardwareDetected() && mFingerprintManager.hasEnrolledFingerprints())) {
 			return;
+		}
+		try {
+			if (initCipher()) {
+				mCryptoObject = new FingerprintManager.CryptoObject(mCipher);
+			} else {
+				Log.e(TAG, "Unable to initialize cipher");
+			}
+		} catch (Exception e) {
+			Log.e(TAG, "Unable to initialize cipher");
 		}
 		this.callback = callback;
 		this.krollObject = obj;
