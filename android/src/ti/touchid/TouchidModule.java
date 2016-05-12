@@ -53,31 +53,6 @@ public class TouchidModule extends KrollModule
 	}
 
 	@Kroll.method
-	public boolean hasFingerprintPermissions() {
-		if (Build.VERSION.SDK_INT < 23) {
-			return true;
-		}
-		Activity currentActivity  = TiApplication.getInstance().getCurrentActivity();
-		if (currentActivity.checkSelfPermission(Manifest.permission.USE_FINGERPRINT) == PackageManager.PERMISSION_GRANTED) {
-			return true;
-		}
-		return false;
-	}
-
-	@Kroll.method
-	public void requestFingerprintPermissions(@Kroll.argument(optional=true)KrollFunction permissionCallback) {
-		if (hasFingerprintPermissions()) {
-			return;
-		}
-
-		String[] permissions = new String[]{Manifest.permission.USE_FINGERPRINT};
-		TiBaseActivity.registerPermissionRequestCallback(PERMISSION_CODE_FINGERPRINT,permissionCallback, getKrollObject());
-
-		Activity currentActivity = TiApplication.getInstance().getCurrentActivity();
-		currentActivity.requestPermissions(permissions, PERMISSION_CODE_FINGERPRINT);
-	}
-
-	@Kroll.method
 	public void authenticate(HashMap params) {
 		if (params == null) {
 			return;
