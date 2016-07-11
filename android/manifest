@@ -2,9 +2,9 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 1.0.0
-apiversion: 2
-architectures: armeabi armeabi-v7a x86
+version: 2.0.0
+apiversion: 3
+architectures: armeabi-v7a x86
 description: Fingerprint module.
 author: Hieu Pham
 license: Apache Public License v2
@@ -16,4 +16,4 @@ name: touchid
 moduleid: ti.touchid
 guid: f0d8fd44-86d2-4730-b67d-bd454577aeee
 platform: android
-minsdk: 5.4.0
+minsdk: 6.0.0
