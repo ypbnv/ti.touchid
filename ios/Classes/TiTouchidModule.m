@@ -51,7 +51,18 @@
 
 -(NSNumber*)isSupported:(id)unused
 {
-	return NUMBOOL([TiUtils isIOS8OrGreater]);
+    if (![TiUtils isIOS8OrGreater]) {
+        return NUMBOOL(NO);
+    }
+    
+    LAContext *context = [[LAContext new] autorelease];
+    __block BOOL isSupported = NO;
+    
+    TiThreadPerformOnMainThread(^{
+        isSupported = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:nil];
+    },YES);
+    
+    return NUMBOOL(isSupported);
 }
 
 /**
@@ -80,8 +91,7 @@
 		NSLog(@"[WARN] Ti.TouchID: \"callback\" must be a function");
 		return;
 	}
-	if(![TiUtils isIOS8OrGreater])
-	{
+	if(![[self isSupported:nil] boolValue]) {
 		TiThreadPerformOnMainThread(^{
 			NSMutableDictionary *event = [NSMutableDictionary dictionary];
 			[event setValue:@"This API is only available in iOS 8 and above" forKey:@"error"];
