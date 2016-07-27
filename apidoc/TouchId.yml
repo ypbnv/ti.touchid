@@ -52,6 +52,13 @@ description: |
 methods:
   - name: authenticate
     summary: Initiates the Touch ID authentication process.
+    description: |
+      A special note for Android:
+
+      When you call this method in Android, if you provide an incorrect fingerprint and receive an error
+      message "Unable to recognize fingerprint", do not call authenticate. Instead, get the user to try
+      again. If you call authenticate, it will end up in a bad state. This flow will be improved in the
+      next update for Android.
     parameters:
       - name: params
         summary: |
