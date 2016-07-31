@@ -32,7 +32,6 @@
 -(void)startup
 {
 	[super startup];
-	NSLog(@"[INFO] %@ loaded",self);
 }
 
 -(void)shutdown:(id)sender
