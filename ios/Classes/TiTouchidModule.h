@@ -14,17 +14,32 @@
  Determines if the current device supports Touch ID.
  @return YES if the current device supports Touch ID, NO otherwise.
  */
--(NSNumber*)isSupported:(id)unused;
+- (NSNumber*)isSupported:(id)unused;
 
 /**
  Authenticates the user.
  */
--(void)authenticate:(id)args;
+- (void)authenticate:(id)args;
+
+/**
+ Save one or more values to the keychain
+ */
+- (void)saveToKeychain:(id)args;
+
+/**
+ Reads one or more values from the keychain
+ */
+- (void)readFromKeychain:(id)args;
+
+/**
+ Deletes one or more values from the keychain
+ */
+- (void)deleteFromKeychain:(id)args;
 
 /**
  Determines if the current device currently can authenticate with Touch ID.
  @return `NSDictionary` that contains infos about the device authentication.
  */
--(NSDictionary*)deviceCanAuthenticate:(id)args;
+- (NSDictionary*)deviceCanAuthenticate:(id)args;
 
 @end

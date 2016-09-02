@@ -12,43 +12,44 @@
 #import "TiBase.h"
 #import "TiHost.h"
 #import "TiUtils.h"
+#import "KeychainItemWrapper.h"
 
 @implementation TiTouchidModule
 
 #pragma mark Internal
 
--(id)moduleGUID
+- (id)moduleGUID
 {
 	return @"0ee4118b-68f9-47c6-8c37-d68778ecb806";
 }
 
--(NSString*)moduleId
+- (NSString*)moduleId
 {
 	return @"ti.touchid";
 }
 
 #pragma mark Lifecycle
 
--(void)startup
+- (void)startup
 {
 	[super startup];
 }
 
--(void)shutdown:(id)sender
+- (void)shutdown:(id)sender
 {
 	[super shutdown:sender];
 }
 
 #pragma mark Cleanup 
 
--(void)dealloc
+- (void)dealloc
 {
 	[super dealloc];
 }
 
 #pragma mark Public API
 
--(NSNumber*)isSupported:(id)unused
+- (NSNumber*)isSupported:(id)unused
 {
     if (![TiUtils isIOS8OrGreater]) {
         return NUMBOOL(NO);
@@ -62,6 +63,98 @@
     },YES);
     
     return NUMBOOL(isSupported);
+}
+
+- (void)saveToKeychain:(id)args
+{
+    NSDictionary *items;
+    NSString *identifier;
+    NSString *accessGroup;
+    KrollCallback *successCallback;
+    KrollCallback *errorCallback;
+    BOOL authorizationRequired = [TiUtils boolValue:[args objectForKey:@"authorizationRequired"] def:NO];
+    
+    ENSURE_ARG_FOR_KEY(items, args, @"items", NSDictionary);
+    ENSURE_ARG_FOR_KEY(successCallback, args, @"success", KrollCallback);
+    ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
+    ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
+    ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
+    
+    if (authorizationRequired) {
+        // TODO: Show auth-dialog before
+    }
+    
+    KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
+                                                                       accessGroup:accessGroup];
+    
+    for (NSString *key in [items allKeys]) {
+        [wrapper setObject:[items objectForKey:key] forKey:key];
+    }
+    
+    RELEASE_TO_NIL(wrapper);
+    
+    NSDictionary * propertiesDict = @{@"success": NUMBOOL(YES)};
+    NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
+    
+    [successCallback call:invocationArray thisObject:self];
+    [invocationArray release];
+}
+
+- (void)readFromKeychain:(id)args
+{
+    NSArray *items;
+    NSString *identifier;
+    NSString *accessGroup;
+    KrollCallback *successCallback;
+    KrollCallback *errorCallback;
+    BOOL authorizationRequired = [TiUtils boolValue:[args objectForKey:@"authorizationRequired"] def:NO];
+
+    ENSURE_ARG_FOR_KEY(items, args, @"items", NSArray);
+    ENSURE_ARG_FOR_KEY(successCallback, args, @"success", KrollCallback);
+    ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
+    ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
+    ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
+    
+    if (authorizationRequired) {
+        // TODO: Show auth-dialog before
+    }
+    
+    KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
+                                                                       accessGroup:accessGroup];
+    
+    NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    
+    for (NSString *key in items) {
+        [result setObject:[wrapper objectForKey:key] forKey:key];
+    }
+    
+    RELEASE_TO_NIL(wrapper);
+
+    NSDictionary * propertiesDict = @{@"success": NUMBOOL(YES), @"items": result};
+    NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
+    
+    [successCallback call:invocationArray thisObject:self];
+    [invocationArray release];
+}
+
+- (void)resetKeychain:(id)args
+{
+    NSString *identifier;
+    NSString *accessGroup;
+    BOOL authorizationRequired = [TiUtils boolValue:[args objectForKey:@"authorizationRequired"] def:NO];
+
+    ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
+    ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
+
+    if (authorizationRequired) {
+        // TODO: Show auth-dialog before
+    }
+    
+    KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
+                                                                       accessGroup:accessGroup];
+    
+    [wrapper resetKeychainItem];
+    RELEASE_TO_NIL(wrapper);
 }
 
 /**
@@ -80,7 +173,7 @@
  *     }
  * });
  */
--(void)authenticate:(id)args
+- (void)authenticate:(id)args
 {
 	ENSURE_SINGLE_ARG(args, NSDictionary);
 	NSString *reason = [TiUtils stringValue:[args valueForKey:@"reason"]];
@@ -112,7 +205,7 @@
 			 NSMutableDictionary *event = [NSMutableDictionary dictionary];
 			 if(error != nil) {
 				 [event setValue:[error localizedDescription] forKey:@"error"];
-				 [event setValue:NUMINT([error code]) forKey:@"code"];
+				 [event setValue:NUMINTEGER([error code]) forKey:@"code"];
 			 }
 			 [event setValue:NUMBOOL(succes) forKey:@"success"];
 			 [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
@@ -126,7 +219,7 @@
 		NSMutableDictionary *event = [NSMutableDictionary dictionary];
 		if(authError != nil) {
 			[event setValue:[authError localizedDescription] forKey:@"error"];
-			[event setValue:NUMINT([authError code]) forKey:@"code"];
+			[event setValue:NUMINTEGER([authError code]) forKey:@"code"];
 		} else {
 			[event setValue:@"Can not evaluate Touch ID" forKey:@"error"];
 			[event setValue:NUMINT(0.0) forKey:@"code"];
@@ -136,7 +229,7 @@
 	}, NO);
 }
 
--(NSDictionary*)deviceCanAuthenticate:(id)args
+- (NSDictionary*)deviceCanAuthenticate:(id)args
 {
 	if(![TiUtils isIOS8OrGreater]) {
 		NSDictionary * versionResult = [NSDictionary dictionaryWithObjectsAndKeys:
@@ -151,7 +244,7 @@
 	NSMutableDictionary *result = [NSMutableDictionary dictionary];
 	if(authError != nil) {
 		[result setValue:[TiUtils messageFromError:authError] forKey:@"error"];
-		[result setValue:NUMINT([authError code]) forKey:@"code"];
+		[result setValue:NUMINTEGER([authError code]) forKey:@"code"];
 	}
 	[result setValue:NUMBOOL(canAuthenticate) forKey:@"canAuthenticate"];
 	return result;
@@ -159,70 +252,79 @@
 
 #pragma mark Constants
 
--(NSNumber*)ERROR_AUTHENTICATION_FAILED
+- (NSNumber*)ERROR_AUTHENTICATION_FAILED
 {
 	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorAuthenticationFailed);
 	}
 	return NUMINT(-1);
 }
--(NSNumber*)ERROR_USER_CANCEL
+
+- (NSNumber*)ERROR_USER_CANCEL
 {
 	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorUserCancel);
 	}
 	return NUMINT(-2);
 }
--(NSNumber*)ERROR_USER_FALLBACK
+
+- (NSNumber*)ERROR_USER_FALLBACK
 {
 	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorUserFallback);
 	}
 	return NUMINT(-3);
 }
--(NSNumber*)ERROR_SYSTEM_CANCEL
+
+- (NSNumber*)ERROR_SYSTEM_CANCEL
 {
 	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorSystemCancel);
 	}
 	return NUMINT(-4);
 }
--(NSNumber*)ERROR_PASSCODE_NOT_SET
+
+- (NSNumber*)ERROR_PASSCODE_NOT_SET
 {
 	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorPasscodeNotSet);
 	}
 	return NUMINT(-5);
 }
--(NSNumber*)ERROR_TOUCH_ID_NOT_AVAILABLE
+
+- (NSNumber*)ERROR_TOUCH_ID_NOT_AVAILABLE
 {
 	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorTouchIDNotAvailable);
 	}
 	return NUMINT(-6);
 }
--(NSNumber*)ERROR_TOUCH_ID_NOT_ENROLLED
+
+- (NSNumber*)ERROR_TOUCH_ID_NOT_ENROLLED
 {
 	if([TiUtils isIOS8OrGreater]) {
 		return NUMINT(LAErrorTouchIDNotEnrolled);
 	}
 	return NUMINT(-7);
 }
--(NSNumber*)ERROR_APP_CANCELLED
+
+- (NSNumber*)ERROR_APP_CANCELLED
 {
     if([TiUtils isIOS9OrGreater]) {
         return NUMINT(LAErrorAppCancel);
     }
     return NUMINT(-8);
 }
--(NSNumber*)ERROR_INVALID_CONTEXT
+
+- (NSNumber*)ERROR_INVALID_CONTEXT
 {
     if([TiUtils isIOS9OrGreater]) {
         return NUMINT(LAErrorInvalidContext);
     }
     return NUMINT(-9);
 }
--(NSNumber*)ERROR_TOUCH_ID_LOCKOUT
+
+- (NSNumber*)ERROR_TOUCH_ID_LOCKOUT
 {
     if([TiUtils isIOS9OrGreater]) {
         return NUMINT(LAErrorTouchIDLockout);
