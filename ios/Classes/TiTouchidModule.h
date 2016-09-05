@@ -22,19 +22,22 @@
 - (void)authenticate:(id)args;
 
 /**
- Save one or more values to the keychain
+ Save a new value to the keychain. The value is identified by it's keychain 
+ item identifier and an optional access-group.
  */
-- (void)saveToKeychain:(id)args;
+- (void)saveValueToKeychain:(id)args;
 
 /**
- Reads one or more values from the keychain
+ Reads an existing value from the keychain. The value is identified by it's 
+ keychain item identifier and an optional access-group.
  */
-- (void)readFromKeychain:(id)args;
+- (void)readValueFromKeychain:(id)args;
 
 /**
- Deletes one or more values from the keychain
+ Deletes a value from the keychain. The value is identified by it's
+ keychain item identifier and an optional access-group. 
  */
-- (void)deleteFromKeychain:(id)args;
+- (void)deleteValueFromKeychain:(id)args;
 
 /**
  Determines if the current device currently can authenticate with Touch ID.

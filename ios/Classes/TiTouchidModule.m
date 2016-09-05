@@ -65,30 +65,46 @@
     return NUMBOOL(isSupported);
 }
 
-- (void)saveToKeychain:(id)args
+- (void)saveValueToKeychain:(id)args
 {
-    NSDictionary *items;
+    ENSURE_SINGLE_ARG(args, NSDictionary);
+    
+    NSString *account;
+    NSString *value;
     NSString *identifier;
     NSString *accessGroup;
     KrollCallback *successCallback;
     KrollCallback *errorCallback;
-    BOOL authorizationRequired = [TiUtils boolValue:[args objectForKey:@"authorizationRequired"] def:NO];
     
-    ENSURE_ARG_FOR_KEY(items, args, @"items", NSDictionary);
+    ENSURE_ARG_FOR_KEY(account, args, @"account", NSString);
+    ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
     ENSURE_ARG_FOR_KEY(successCallback, args, @"success", KrollCallback);
     ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
     ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
     ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
     
-    if (authorizationRequired) {
-        // TODO: Show auth-dialog before
+    if ([TiTouchidModule isAlphaNumeric:identifier]) {
+        NSDictionary * propertiesDict = @{
+            @"success": NUMBOOL(NO),
+            @"error": @"Keychain-identifiers cannot contain special characters!"
+        };
+        NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
+        
+        [successCallback call:invocationArray thisObject:self];
+        [invocationArray release];
+        
+        return;
     }
     
     KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
                                                                        accessGroup:accessGroup];
     
-    for (NSString *key in [items allKeys]) {
-        [wrapper setObject:[items objectForKey:key] forKey:key];
+    if (account) {
+        [wrapper setObject:account forKey:(id)kSecAttrAccount];
+    }
+    
+    if (value) {
+        [wrapper setObject:value forKey:(id)kSecValueData];
     }
     
     RELEASE_TO_NIL(wrapper);
@@ -100,60 +116,55 @@
     [invocationArray release];
 }
 
-- (void)readFromKeychain:(id)args
+- (void)readValueFromKeychain:(id)args
 {
-    NSArray *items;
+    ENSURE_SINGLE_ARG(args, NSDictionary);
+
     NSString *identifier;
     NSString *accessGroup;
     KrollCallback *successCallback;
     KrollCallback *errorCallback;
-    BOOL authorizationRequired = [TiUtils boolValue:[args objectForKey:@"authorizationRequired"] def:NO];
 
-    ENSURE_ARG_FOR_KEY(items, args, @"items", NSArray);
     ENSURE_ARG_FOR_KEY(successCallback, args, @"success", KrollCallback);
     ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
     ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
     ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
     
-    if (authorizationRequired) {
-        // TODO: Show auth-dialog before
-    }
-    
     KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
                                                                        accessGroup:accessGroup];
     
-    NSMutableDictionary *result = [NSMutableDictionary dictionary];
+    NSString *result = [[wrapper objectForKey:(id)kSecValueData] retain];
     
-    for (NSString *key in items) {
-        [result setObject:[wrapper objectForKey:key] forKey:key];
-    }
-    
-    RELEASE_TO_NIL(wrapper);
-
-    NSDictionary * propertiesDict = @{@"success": NUMBOOL(YES), @"items": result};
+    NSDictionary * propertiesDict = @{@"success": NUMBOOL(result.length > 0), @"value": result};
     NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
     
-    [successCallback call:invocationArray thisObject:self];
+    if ([result length] == 0) {
+        [errorCallback call:invocationArray thisObject:self];
+    } else {
+        [successCallback call:invocationArray thisObject:self];
+    }
+    
     [invocationArray release];
+    
+    RELEASE_TO_NIL(wrapper);
+    RELEASE_TO_NIL(result);
 }
 
-- (void)resetKeychain:(id)args
+- (void)deleteValueFromKeychain:(id)args
 {
+    ENSURE_SINGLE_ARG(args, NSDictionary);
+
     NSString *identifier;
     NSString *accessGroup;
-    BOOL authorizationRequired = [TiUtils boolValue:[args objectForKey:@"authorizationRequired"] def:NO];
-
+    
     ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
     ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
-
-    if (authorizationRequired) {
-        // TODO: Show auth-dialog before
-    }
     
     KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
                                                                        accessGroup:accessGroup];
     
     [wrapper resetKeychainItem];
+    
     RELEASE_TO_NIL(wrapper);
 }
 
@@ -248,6 +259,14 @@
 	}
 	[result setValue:NUMBOOL(canAuthenticate) forKey:@"canAuthenticate"];
 	return result;
+}
+
++ (BOOL)isAlphaNumeric:(NSString*)value
+{
+    NSCharacterSet *unwantedCharacters =
+    [[NSCharacterSet alphanumericCharacterSet] invertedSet];
+    
+    return ([value rangeOfCharacterFromSet:unwantedCharacters].location == NSNotFound);
 }
 
 #pragma mark Constants
