@@ -28,25 +28,6 @@
 	return @"ti.touchid";
 }
 
-#pragma mark Lifecycle
-
-- (void)startup
-{
-	[super startup];
-}
-
-- (void)shutdown:(id)sender
-{
-	[super shutdown:sender];
-}
-
-#pragma mark Cleanup 
-
-- (void)dealloc
-{
-	[super dealloc];
-}
-
 #pragma mark Public API
 
 - (NSNumber*)isSupported:(id)unused
@@ -69,42 +50,28 @@
 {
     ENSURE_SINGLE_ARG(args, NSDictionary);
     
-    NSString *account;
     NSString *value;
-    NSString *identifier;
-    NSString *accessGroup;
-    NSString *accessibilityMode;
     KrollCallback *successCallback;
     KrollCallback *errorCallback;
     
-    ENSURE_ARG_FOR_KEY(account, args, @"account", NSString);
     ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
     ENSURE_ARG_FOR_KEY(successCallback, args, @"success", KrollCallback);
     ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
-    ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
-    ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
-    ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
     
-    if ([TiTouchidModule isAlphaNumeric:identifier]) {
+    if ([TiTouchidModule isAlphaNumeric:[args objectForKey:@"identifier"]]) {
         NSDictionary * propertiesDict = @{
             @"success": NUMBOOL(NO),
             @"error": @"Keychain-identifiers cannot contain special characters!"
         };
         NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
         
-        [successCallback call:invocationArray thisObject:self];
+        [errorCallback call:invocationArray thisObject:self];
         [invocationArray release];
         
         return;
     }
     
-    KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
-                                                                       accessGroup:accessGroup
-                                                                 accessibilityMode:(CFStringRef)accessibilityMode];
-    
-    if (account) {
-        [wrapper setObject:account forKey:(id)kSecAttrAccount];
-    }
+    KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
     
     if (value) {
         [wrapper setObject:value forKey:(id)kSecValueData];
@@ -123,21 +90,28 @@
 {
     ENSURE_SINGLE_ARG(args, NSDictionary);
 
-    NSString *identifier;
-    NSString *accessGroup;
-    NSString *accessibilityMode;
+    NSString *value;
     KrollCallback *successCallback;
     KrollCallback *errorCallback;
-
+    
+    ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
     ENSURE_ARG_FOR_KEY(successCallback, args, @"success", KrollCallback);
     ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
-    ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
-    ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
-    ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
     
-    KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
-                                                                       accessGroup:accessGroup
-                                                                 accessibilityMode:(CFStringRef)accessibilityMode];
+    if ([TiTouchidModule isAlphaNumeric:[args objectForKey:@"identifier"]]) {
+        NSDictionary * propertiesDict = @{
+            @"success": NUMBOOL(NO),
+            @"error": @"Keychain-identifiers cannot contain special characters!"
+        };
+        NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
+        
+        [errorCallback call:invocationArray thisObject:self];
+        [invocationArray release];
+        
+        return;
+    }
+    
+    KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
     
     NSString *result = [[wrapper objectForKey:(id)kSecValueData] retain];
     
@@ -152,26 +126,15 @@
     
     [invocationArray release];
     
-    RELEASE_TO_NIL(wrapper);
     RELEASE_TO_NIL(result);
+    RELEASE_TO_NIL(wrapper);
 }
 
 - (void)deleteValueFromKeychain:(id)args
 {
     ENSURE_SINGLE_ARG(args, NSDictionary);
-
-    NSString *identifier;
-    NSString *accessGroup;
-    NSString *accessibilityMode;
     
-    ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
-    ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
-    ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
-    
-    KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
-                                                                       accessGroup:accessGroup
-                                                                 accessibilityMode:(CFStringRef)accessibilityMode];
-    
+    KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
     [wrapper resetKeychainItem];
     
     RELEASE_TO_NIL(wrapper);
@@ -275,6 +238,50 @@
     return ([value rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet]].location == NSNotFound);
 }
 
++ (SecAccessControlCreateFlags)accessControlFlagsFromArgs:(id)args
+{
+    id accessControlMode = [args objectForKey:@"accessControlMode"];
+    id accessibilityMode = [args objectForKey:@"accessibilityMode"];
+    
+    SecAccessControlCreateFlags optionFlags = kSecAccessControlUserPresence;
+    
+    if (accessControlMode) {
+        if (!accessibilityMode) {
+            NSLog(@"[ERROR] When using \"accessControlMode\" you must also specify the \"accessibilityMode\" property.");
+        } else if ([accessControlMode isKindOfClass:[NSNumber class]]) {
+            optionFlags = accessControlMode;
+        } else if ([accessControlMode isKindOfClass:[NSArray class]]) {
+            for (id flag in accessControlMode) {
+                ENSURE_TYPE(flag, NSNumber); // flags are of type "SecAccessControlCreateFlags", which is "CFOptionFlags", which is "long", which is "NSNumber"
+                optionFlags |= (SecAccessControlCreateFlags)flag;
+            }
+        } else {
+            NSLog(@"[WARN] The property \"accessControlMode\" must either be a single constant or a logic concatination of multiple constants.");
+            NSLog(@"[WARN] Falling back to default kSecAccessControlUserPresence");            
+        }
+    }
+    
+    return optionFlags;
+}
+
+- (KeychainItemWrapper*)keychainItemWrapperFromArgs:(id)args
+{
+    NSString *value;
+    NSString *identifier;
+    NSString *accessGroup;
+    NSString *accessibilityMode;
+    
+    ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
+    ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
+    ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
+    ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
+    
+    return [[[KeychainItemWrapper alloc] initWithIdentifier:identifier
+                                                                       accessGroup:accessGroup
+                                                                 accessibilityMode:(CFStringRef)accessibilityMode
+                                                                 accessControlMode:[TiTouchidModule accessControlFlagsFromArgs:args]] autorelease];
+}
+
 #pragma mark Constants
 
 - (NSNumber*)ERROR_AUTHENTICATION_FAILED
@@ -364,5 +371,14 @@ MAKE_SYSTEM_STR(ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY, kSecAttrAccessibl
 MAKE_SYSTEM_STR(ACCESSIBLE_WHEN_UNLOCKED_THIS_DEVICE_ONLY, kSecAttrAccessibleWhenUnlockedThisDeviceOnly);
 MAKE_SYSTEM_STR(ACCESSIBLE_AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly);
 MAKE_SYSTEM_STR(ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY, kSecAttrAccessibleAlwaysThisDeviceOnly);
+
+MAKE_SYSTEM_STR(ACCESS_CONTROL_USER_PRESENCE, kSecAccessControlUserPresence);
+MAKE_SYSTEM_STR(ACCESS_CONTROL_TOUCH_ID_ANY, kSecAccessControlTouchIDAny);
+MAKE_SYSTEM_STR(ACCESS_CONTROL_TOUCH_ID_CURRENT_SET, kSecAccessControlTouchIDCurrentSet);
+MAKE_SYSTEM_STR(ACCESS_CONTROL_DEVICE_PASSCODE, kSecAccessControlDevicePasscode);
+MAKE_SYSTEM_STR(ACCESS_CONTROL_OR, kSecAccessControlOr);
+MAKE_SYSTEM_STR(ACCESS_CONTROL_AND, kSecAccessControlAnd);
+MAKE_SYSTEM_STR(ACCESS_CONTROL_PRIVATE_KEY_USAGE, kSecAccessControlPrivateKeyUsage);
+MAKE_SYSTEM_STR(ACCESS_CONTROL_APPLICATION_PASSWORD, kSecAccessControlApplicationPassword);
 
 @end

@@ -91,7 +91,7 @@ Keychain API expects as a validly constructed container class.
 
 @synthesize keychainItemData, genericPasswordQuery;
 
-- (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *)accessGroup accessibilityMode:(CFStringRef)accessibilityMode;
+- (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *)accessGroup accessibilityMode:(CFStringRef)accessibilityMode accessControlMode:(SecAccessControlCreateFlags)accessControlMode
 {
     if (self = [super init])
     {
@@ -118,10 +118,17 @@ Keychain API expects as a validly constructed container class.
         // the data in the keychain item can always be accessed regardless of whether the device is locked.
         if (accessibilityMode) {
             CFErrorRef error = NULL;
-            SecAccessControlRef accessControl = SecAccessControlCreateWithFlags(kCFAllocatorDefault, accessibilityMode, kSecAccessControlUserPresence, &error);
+            SecAccessControlRef accessControl = SecAccessControlCreateWithFlags(kCFAllocatorDefault, accessibilityMode, accessControlMode, &error);
             if (error == NULL || accessControl != NULL) {
                 genericPasswordQuery[(id)kSecAttrAccessControl] = (id)accessControl;
                 genericPasswordQuery[(id)kSecUseNoAuthenticationUI] = @YES;
+                CFRelease(accessControl);
+            } else {
+                NSLog(@"Could not create access control: %@", [(NSError*)error localizedDescription]);
+                
+                if (accessControl) {
+                    CFRelease(accessControl);
+                }
             }
         } else {
             genericPasswordQuery[(id)kSecAttrAccessible] = (id)kSecAttrAccessibleAlwaysThisDeviceOnly;
