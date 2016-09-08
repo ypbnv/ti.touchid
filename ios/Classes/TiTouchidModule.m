@@ -161,6 +161,8 @@
 	ENSURE_SINGLE_ARG(args, NSDictionary);
 	NSString *reason = [TiUtils stringValue:[args valueForKey:@"reason"]];
 	KrollCallback *callback = [args valueForKey:@"callback"];
+    id maxBiometryFailures = [args valueForKey:@"maxBiometryFailures"];
+    id allowableReuseDuration = [args valueForKey:@"allowableReuseDuration"];
 
 	if(![callback isKindOfClass:[KrollCallback class]]) {
 		NSLog(@"[WARN] Ti.TouchID: \"callback\" must be a function");
@@ -178,6 +180,16 @@
 	}
 	LAContext *myContext = [[[LAContext alloc] init] autorelease];
 	NSError *authError = nil;
+    
+    if ([TiUtils isIOS9OrGreater]) {
+        if (maxBiometryFailures) {
+            [myContext setMaxBiometryFailures:[TiUtils intValue:maxBiometryFailures]];
+        }
+        
+        if (allowableReuseDuration) {
+            [myContext setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
+        }
+    }
 	
 	if ([myContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
 		// Make sure this runs on the main thread, for two reasons:
