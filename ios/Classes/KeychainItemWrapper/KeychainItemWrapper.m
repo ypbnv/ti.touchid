@@ -91,7 +91,7 @@ Keychain API expects as a validly constructed container class.
 
 @synthesize keychainItemData, genericPasswordQuery;
 
-- (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *) accessGroup;
+- (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *)accessGroup accessibilityMode:(CFStringRef)accessibilityMode;
 {
     if (self = [super init])
     {
@@ -102,6 +102,30 @@ Keychain API expects as a validly constructed container class.
         
 		[genericPasswordQuery setObject:(id)kSecClassGenericPassword forKey:(id)kSecClass];
         [genericPasswordQuery setObject:identifier forKey:(id)kSecAttrGeneric];
+        
+        // If the accessibility mode is provided, we apply a special access control to our
+        // dictionary of keychain options. List of possible options:
+        //
+        // extern const CFStringRef kSecAttrAccessibleWhenUnlocked
+        // extern const CFStringRef kSecAttrAccessibleAfterFirstUnlock
+        // extern const CFStringRef kSecAttrAccessibleAlways
+        // extern const CFStringRef kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly
+        // extern const CFStringRef kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        // extern const CFStringRef kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        // extern const CFStringRef kSecAttrAccessibleAlwaysThisDeviceOnly
+        //
+        // If no accessibility mode is specified, we will use `kSecAttrAccessibleAlwaysThisDeviceOnly` so
+        // the data in the keychain item can always be accessed regardless of whether the device is locked.
+        if (accessibilityMode) {
+            CFErrorRef error = NULL;
+            SecAccessControlRef accessControl = SecAccessControlCreateWithFlags(kCFAllocatorDefault, accessibilityMode, kSecAccessControlUserPresence, &error);
+            if (error == NULL || accessControl != NULL) {
+                genericPasswordQuery[(id)kSecAttrAccessControl] = (id)accessControl;
+                genericPasswordQuery[(id)kSecUseNoAuthenticationUI] = @YES;
+            }
+        } else {
+            genericPasswordQuery[(id)kSecAttrAccessible] = (id)kSecAttrAccessibleAlwaysThisDeviceOnly;
+        }
 		
 		// The keychain access group attribute determines if this item can be shared
 		// amongst multiple apps whose code signing entitlements contain the same keychain access group.

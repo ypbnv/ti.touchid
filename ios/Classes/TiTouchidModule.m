@@ -73,6 +73,7 @@
     NSString *value;
     NSString *identifier;
     NSString *accessGroup;
+    NSString *accessibilityMode;
     KrollCallback *successCallback;
     KrollCallback *errorCallback;
     
@@ -82,6 +83,7 @@
     ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
     ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
     ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
+    ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
     
     if ([TiTouchidModule isAlphaNumeric:identifier]) {
         NSDictionary * propertiesDict = @{
@@ -97,7 +99,8 @@
     }
     
     KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
-                                                                       accessGroup:accessGroup];
+                                                                       accessGroup:accessGroup
+                                                                 accessibilityMode:(CFStringRef)accessibilityMode];
     
     if (account) {
         [wrapper setObject:account forKey:(id)kSecAttrAccount];
@@ -122,6 +125,7 @@
 
     NSString *identifier;
     NSString *accessGroup;
+    NSString *accessibilityMode;
     KrollCallback *successCallback;
     KrollCallback *errorCallback;
 
@@ -129,9 +133,11 @@
     ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
     ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
     ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
+    ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
     
     KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
-                                                                       accessGroup:accessGroup];
+                                                                       accessGroup:accessGroup
+                                                                 accessibilityMode:(CFStringRef)accessibilityMode];
     
     NSString *result = [[wrapper objectForKey:(id)kSecValueData] retain];
     
@@ -156,12 +162,15 @@
 
     NSString *identifier;
     NSString *accessGroup;
+    NSString *accessibilityMode;
     
     ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
     ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
+    ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
     
     KeychainItemWrapper *wrapper = [[KeychainItemWrapper alloc] initWithIdentifier:identifier
-                                                                       accessGroup:accessGroup];
+                                                                       accessGroup:accessGroup
+                                                                 accessibilityMode:(CFStringRef)accessibilityMode];
     
     [wrapper resetKeychainItem];
     
@@ -263,10 +272,7 @@
 
 + (BOOL)isAlphaNumeric:(NSString*)value
 {
-    NSCharacterSet *unwantedCharacters =
-    [[NSCharacterSet alphanumericCharacterSet] invertedSet];
-    
-    return ([value rangeOfCharacterFromSet:unwantedCharacters].location == NSNotFound);
+    return ([value rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet]].location == NSNotFound);
 }
 
 #pragma mark Constants
@@ -350,5 +356,13 @@
     }
     return NUMINT(-10);
 }
-@end
 
+MAKE_SYSTEM_STR(ACCESSIBLE_WHEN_UNLOCKED, kSecAttrAccessibleWhenUnlocked);
+MAKE_SYSTEM_STR(ACCESSIBLE_AFTER_FIRST_UNLOCK, kSecAttrAccessibleAfterFirstUnlock);
+MAKE_SYSTEM_STR(ACCESSIBLE_ALWAYS, kSecAttrAccessibleAlways);
+MAKE_SYSTEM_STR(ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY, kSecAttrAccessibleWhenPasscodeSetThisDeviceOnly);
+MAKE_SYSTEM_STR(ACCESSIBLE_WHEN_UNLOCKED_THIS_DEVICE_ONLY, kSecAttrAccessibleWhenUnlockedThisDeviceOnly);
+MAKE_SYSTEM_STR(ACCESSIBLE_AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly);
+MAKE_SYSTEM_STR(ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY, kSecAttrAccessibleAlwaysThisDeviceOnly);
+
+@end
