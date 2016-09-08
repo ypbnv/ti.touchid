@@ -51,21 +51,20 @@
     ENSURE_SINGLE_ARG(args, NSDictionary);
     
     NSString *value;
-    KrollCallback *successCallback;
-    KrollCallback *errorCallback;
+    KrollCallback *callback;
     
     ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
-    ENSURE_ARG_FOR_KEY(successCallback, args, @"success", KrollCallback);
-    ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
+    ENSURE_ARG_FOR_KEY(callback, args, @"callback", KrollCallback);
     
     if ([TiTouchidModule isAlphaNumeric:[args objectForKey:@"identifier"]]) {
-        NSDictionary * propertiesDict = @{
-            @"success": NUMBOOL(NO),
-            @"error": @"Keychain-identifiers cannot contain special characters!"
-        };
-        NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
+        NSMutableDictionary *event = [NSMutableDictionary dictionary];
+        [event setValue:@"Keychain-identifiers cannot contain special characters!" forKey:@"error"];
+        [event setValue:NUMINTEGER(-1) forKey:@"code"];
+        [event setValue:NUMBOOL(NO) forKey:@"success"];
         
-        [errorCallback call:invocationArray thisObject:self];
+        NSArray * invocationArray = [[NSArray alloc] initWithObjects:&event count:1];
+        
+        [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
         [invocationArray release];
         
         return;
@@ -82,7 +81,7 @@
     NSDictionary * propertiesDict = @{@"success": NUMBOOL(YES)};
     NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
     
-    [successCallback call:invocationArray thisObject:self];
+    [callback call:invocationArray thisObject:self];
     [invocationArray release];
 }
 
@@ -91,21 +90,20 @@
     ENSURE_SINGLE_ARG(args, NSDictionary);
 
     NSString *value;
-    KrollCallback *successCallback;
-    KrollCallback *errorCallback;
+    KrollCallback *callback;
     
     ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
-    ENSURE_ARG_FOR_KEY(successCallback, args, @"success", KrollCallback);
-    ENSURE_ARG_FOR_KEY(errorCallback, args, @"error", KrollCallback);
+    ENSURE_ARG_FOR_KEY(callback, args, @"callback", KrollCallback);
     
     if ([TiTouchidModule isAlphaNumeric:[args objectForKey:@"identifier"]]) {
-        NSDictionary * propertiesDict = @{
-            @"success": NUMBOOL(NO),
-            @"error": @"Keychain-identifiers cannot contain special characters!"
-        };
-        NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
-        
-        [errorCallback call:invocationArray thisObject:self];
+        NSMutableDictionary *event = [NSMutableDictionary dictionary];
+        [event setValue:@"Keychain-identifiers cannot contain special characters!" forKey:@"error"];
+        [event setValue:NUMINTEGER(-1) forKey:@"code"];
+        [event setValue:NUMBOOL(NO) forKey:@"success"];
+
+        NSArray * invocationArray = [[NSArray alloc] initWithObjects:&event count:1];
+
+        [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
         [invocationArray release];
         
         return;
@@ -119,9 +117,9 @@
     NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
     
     if ([result length] == 0) {
-        [errorCallback call:invocationArray thisObject:self];
+        [callback call:invocationArray thisObject:self];
     } else {
-        [successCallback call:invocationArray thisObject:self];
+        [callback call:invocationArray thisObject:self];
     }
     
     [invocationArray release];
@@ -196,13 +194,13 @@
 		// 1. This will show an alert dialog, which is a UI component
 		// 2. The callback function (KrollCallback) needs to run on main thread
 		TiThreadPerformOnMainThread(^{
-			[myContext evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:reason reply:^(BOOL succes, NSError *error) {
+			[myContext evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:reason reply:^(BOOL success, NSError *error) {
 			 NSMutableDictionary *event = [NSMutableDictionary dictionary];
 			 if(error != nil) {
 				 [event setValue:[error localizedDescription] forKey:@"error"];
 				 [event setValue:NUMINTEGER([error code]) forKey:@"code"];
 			 }
-			 [event setValue:NUMBOOL(succes) forKey:@"success"];
+			 [event setValue:NUMBOOL(success) forKey:@"success"];
 			 [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
 		 }];
 		}, NO);
