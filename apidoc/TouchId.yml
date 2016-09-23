@@ -89,7 +89,8 @@ methods:
 
   - name: isSupported
     summary: Determines if the current device supports Touch ID.
-    type: Boolean
+    returns:
+        type: Boolean
 
 properties:
 
