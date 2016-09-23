@@ -56,7 +56,7 @@
     ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
     ENSURE_ARG_FOR_KEY(callback, args, @"callback", KrollCallback);
     
-    if ([TiTouchidModule isAlphaNumeric:[args objectForKey:@"identifier"]]) {
+    if ([TiTouchidModule isAlphaNumeric:[TiUtils stringValue:[args objectForKey:@"identifier"]]]) {
         NSMutableDictionary *event = [NSMutableDictionary dictionary];
         [event setValue:@"Keychain-identifiers cannot contain special characters!" forKey:@"error"];
         [event setValue:NUMINTEGER(-1) forKey:@"code"];
@@ -71,9 +71,12 @@
     }
     
     KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
+    BOOL isDuplicate = [value isEqualToString:[wrapper objectForKey:(id)kSecValueData]];
     
-    if (value) {
+    if (value && !isDuplicate) {
         [wrapper setObject:value forKey:(id)kSecValueData];
+    } else if (isDuplicate) {
+        NSLog(@"[ERROR] The specified value is already saved in this8 keychain. Skipping ...");
     }
     
     RELEASE_TO_NIL(wrapper);
@@ -89,13 +92,11 @@
 {
     ENSURE_SINGLE_ARG(args, NSDictionary);
 
-    NSString *value;
     KrollCallback *callback;
     
-    ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
     ENSURE_ARG_FOR_KEY(callback, args, @"callback", KrollCallback);
     
-    if ([TiTouchidModule isAlphaNumeric:[args objectForKey:@"identifier"]]) {
+    if ([TiTouchidModule isAlphaNumeric:[TiUtils stringValue:[args objectForKey:@"identifier"]]]) {
         NSMutableDictionary *event = [NSMutableDictionary dictionary];
         [event setValue:@"Keychain-identifiers cannot contain special characters!" forKey:@"error"];
         [event setValue:NUMINTEGER(-1) forKey:@"code"];
@@ -111,12 +112,11 @@
     
     KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
     
-    NSString *result = [[wrapper objectForKey:(id)kSecValueData] retain];
-    
-    NSDictionary * propertiesDict = @{@"success": NUMBOOL(result.length > 0), @"value": result};
+    NSString *value = [[wrapper objectForKey:(id)kSecValueData] retain];    
+    NSDictionary * propertiesDict = @{@"success": NUMBOOL(value.length > 0), @"value": value};
     NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
     
-    if ([result length] == 0) {
+    if ([value length] == 0) {
         [callback call:invocationArray thisObject:self];
     } else {
         [callback call:invocationArray thisObject:self];
@@ -124,7 +124,6 @@
     
     [invocationArray release];
     
-    RELEASE_TO_NIL(result);
     RELEASE_TO_NIL(wrapper);
 }
 
@@ -179,14 +178,16 @@
 	LAContext *myContext = [[[LAContext alloc] init] autorelease];
 	NSError *authError = nil;
     
-    if ([TiUtils isIOS9OrGreater]) {
-        if (maxBiometryFailures) {
-            [myContext setMaxBiometryFailures:[TiUtils intValue:maxBiometryFailures]];
-        }
-        
-        if (allowableReuseDuration) {
-            [myContext setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
-        }
+    if (NO == [TiUtils isIOS9OrGreater]) {
+        TiThreadPerformOnMainThread(^{
+            if (maxBiometryFailures) {
+                [myContext setMaxBiometryFailures:[TiUtils intValue:maxBiometryFailures]];
+            }
+            
+            if (allowableReuseDuration) {
+                [myContext setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
+            }
+        }, NO);
     }
 	
 	if ([myContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
@@ -245,7 +246,8 @@
 
 + (BOOL)isAlphaNumeric:(NSString*)value
 {
-    return ([value rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet]].location == NSNotFound);
+    // FIXME: Add proper alphanumberic check
+    return NO; //([value rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet]].location == NSNotFound);
 }
 
 + (SecAccessControlCreateFlags)accessControlFlagsFromArgs:(id)args
@@ -276,12 +278,10 @@
 
 - (KeychainItemWrapper*)keychainItemWrapperFromArgs:(id)args
 {
-    NSString *value;
     NSString *identifier;
     NSString *accessGroup;
     NSString *accessibilityMode;
     
-    ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
     ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
     ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
     ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
