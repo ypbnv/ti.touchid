@@ -188,6 +188,9 @@ Keychain API expects as a validly constructed container class.
             // load the saved data from Keychain.
             self.keychainItemData = [self secItemFormatToDictionary:outDictionary];
         }
+        
+        [keychainItemData setObject:@"ti.touchid" forKey:(id)kSecAttrService];
+
        
 		[outDictionary release];
     }
@@ -237,7 +240,8 @@ Keychain API expects as a validly constructed container class.
     [keychainItemData setObject:@"" forKey:(id)kSecAttrAccount];
     [keychainItemData setObject:@"" forKey:(id)kSecAttrLabel];
     [keychainItemData setObject:@"" forKey:(id)kSecAttrDescription];
-    
+    [keychainItemData setObject:@"" forKey:(id)kSecAttrComment];
+ 
 	// Default data for keychain item.
     [keychainItemData setObject:@"" forKey:(id)kSecValueData];
 }
@@ -331,13 +335,19 @@ Keychain API expects as a validly constructed container class.
         // An implicit assumption is that you can only update a single item at a time.
 		
         result = SecItemUpdate((CFDictionaryRef)updateItem, (CFDictionaryRef)tempCheck);
-		NSAssert( result == noErr, @"Couldn't update the Keychain Item." );
+        if (result != noErr) {
+            NSLog(@"error updating keychain item: %d", (int) result);
+            NSLog(@"updateItem: %@", [updateItem description]);
+        }
     }
     else
     {
         // No previous item found; add the new one.
         result = SecItemAdd((CFDictionaryRef)[self dictionaryToSecItemFormat:keychainItemData], NULL);
-		NSAssert( result == noErr, @"Couldn't add the Keychain Item." );
+        if (result != noErr) {
+            NSLog(@"error creating keychain item: %d", (int) result);
+            NSLog(@"keychainItemData: %@", [keychainItemData description]);
+        }
     }
 }
 

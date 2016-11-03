@@ -71,13 +71,7 @@
     }
     
     KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
-    BOOL isDuplicate = [value isEqualToString:[wrapper objectForKey:(id)kSecValueData]];
-    
-    if (value && !isDuplicate) {
-        [wrapper setObject:value forKey:(id)kSecValueData];
-    } else if (isDuplicate) {
-        NSLog(@"[ERROR] The specified value is already saved in this8 keychain. Skipping ...");
-    }
+    [wrapper setObject:value forKey:(id)kSecValueData];
     
     RELEASE_TO_NIL(wrapper);
     
@@ -123,7 +117,6 @@
     }
     
     [invocationArray release];
-    
     RELEASE_TO_NIL(wrapper);
 }
 
@@ -178,7 +171,7 @@
 	LAContext *myContext = [[[LAContext alloc] init] autorelease];
 	NSError *authError = nil;
     
-    if (NO == [TiUtils isIOS9OrGreater]) {
+    if (![TiUtils isIOS9OrGreater]) {
         TiThreadPerformOnMainThread(^{
             if (maxBiometryFailures) {
                 [myContext setMaxBiometryFailures:[TiUtils intValue:maxBiometryFailures]];
@@ -287,9 +280,9 @@
     ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
     
     return [[[KeychainItemWrapper alloc] initWithIdentifier:identifier
-                                                                       accessGroup:accessGroup
-                                                                 accessibilityMode:(CFStringRef)accessibilityMode
-                                                                 accessControlMode:[TiTouchidModule accessControlFlagsFromArgs:args]] autorelease];
+                                                accessGroup:accessGroup
+                                          accessibilityMode:(CFStringRef)accessibilityMode
+                                          accessControlMode:[TiTouchidModule accessControlFlagsFromArgs:args]] autorelease];
 }
 
 #pragma mark Constants
