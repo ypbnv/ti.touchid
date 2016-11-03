@@ -1,6 +1,6 @@
 # Change Log
 <pre>
-v2.1.0 Align module version to Android, support iOS keychain access [TIMOB-20547]
+v2.1.0 Align module version with Android, support iOS keychain access [TIMOB-20547]
 
 v1.2.0 iOS9: Upgrade touchid module to support bitcode [TIMOB-19384]
 
