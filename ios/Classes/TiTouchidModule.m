@@ -31,6 +31,7 @@
 - (void)dealloc
 {
     RELEASE_TO_NIL(authContext);
+    [super dealloc];
 }
 
 #pragma mark Public API
@@ -61,20 +62,6 @@
     ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
     ENSURE_ARG_FOR_KEY(callback, args, @"callback", KrollCallback);
     
-    if ([TiTouchidModule isAlphaNumeric:[TiUtils stringValue:[args objectForKey:@"identifier"]]]) {
-        NSMutableDictionary *event = [NSMutableDictionary dictionary];
-        [event setValue:@"Keychain-identifiers cannot contain special characters!" forKey:@"error"];
-        [event setValue:NUMINTEGER(-1) forKey:@"code"];
-        [event setValue:NUMBOOL(NO) forKey:@"success"];
-        
-        NSArray * invocationArray = [[NSArray alloc] initWithObjects:&event count:1];
-        
-        [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
-        [invocationArray release];
-        
-        return;
-    }
-    
     KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
     [wrapper setObject:value forKey:(id)kSecValueData];
     
@@ -92,22 +79,7 @@
     ENSURE_SINGLE_ARG(args, NSDictionary);
 
     KrollCallback *callback;
-    
     ENSURE_ARG_FOR_KEY(callback, args, @"callback", KrollCallback);
-    
-    if ([TiTouchidModule isAlphaNumeric:[TiUtils stringValue:[args objectForKey:@"identifier"]]]) {
-        NSMutableDictionary *event = [NSMutableDictionary dictionary];
-        [event setValue:@"Keychain-identifiers cannot contain special characters!" forKey:@"error"];
-        [event setValue:NUMINTEGER(-1) forKey:@"code"];
-        [event setValue:NUMBOOL(NO) forKey:@"success"];
-
-        NSArray * invocationArray = [[NSArray alloc] initWithObjects:&event count:1];
-
-        [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
-        [invocationArray release];
-        
-        return;
-    }
     
     KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
     
@@ -154,42 +126,60 @@
 - (void)authenticate:(id)args
 {
 	ENSURE_SINGLE_ARG(args, NSDictionary);
+    
 	NSString *reason = [TiUtils stringValue:[args valueForKey:@"reason"]];
 	KrollCallback *callback = [args valueForKey:@"callback"];
     id maxBiometryFailures = [args valueForKey:@"maxBiometryFailures"];
     id allowableReuseDuration = [args valueForKey:@"allowableReuseDuration"];
-
+    id fallbackTitle = [args valueForKey:@"fallbackTitle"];
+    id cancelTitle = [args valueForKey:@"cancelTitle"];
+    
 	if(![callback isKindOfClass:[KrollCallback class]]) {
-		NSLog(@"[WARN] Ti.TouchID: \"callback\" must be a function");
+		NSLog(@"[WARN] Ti.TouchID: The parameter `callback` in `authenticate` must be a function.");
 		return;
 	}
+    
+    // Fail when Touch ID is not supported by the current device
 	if(![[self isSupported:nil] boolValue]) {
-		TiThreadPerformOnMainThread(^{
-			NSMutableDictionary *event = [NSMutableDictionary dictionary];
-			[event setValue:@"This API is only available in iOS 8 and later." forKey:@"error"];
-			[event setValue:[self ERROR_TOUCH_ID_NOT_AVAILABLE] forKey:@"code"];
-			[event setValue:NUMBOOL(NO) forKey:@"success"];
-			[callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
-		}, NO);
+        TiThreadPerformOnMainThread(^{
+            NSDictionary *event = @{
+                @"error": @"The method `authenticate` is only available in iOS 8 and later.",
+                @"code": [self ERROR_TOUCH_ID_NOT_AVAILABLE],
+                @"success": NUMBOOL(NO)
+            };
+
+            [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
+        }, NO);
 		return;
 	}
     
     RELEASE_TO_NIL(authContext);
-	authContext = [[LAContext alloc] init];
+	authContext = [LAContext new];
 	NSError *authError = nil;
     
-    if (![TiUtils isIOS9OrGreater]) {
-        TiThreadPerformOnMainThread(^{
-            if (maxBiometryFailures) {
-                [authContext setMaxBiometryFailures:[TiUtils intValue:maxBiometryFailures]];
-            }
-            
-            if (allowableReuseDuration) {
-                [authContext setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
-            }
-        }, NO);
+    // iOS 9: Expose failure behavior
+    if ([TiUtils isIOS9OrGreater]) {
+        if (maxBiometryFailures) {
+            [authContext setMaxBiometryFailures:NUMINT(maxBiometryFailures)];
+        }
+        
+        if (allowableReuseDuration) {
+            [authContext setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
+        }
     }
-	
+    
+    // iOS 10: Expose support for localized titles
+    if ([TiUtils isIOS10OrGreater]) {
+        if (fallbackTitle) {
+            [authContext setLocalizedFallbackTitle:[TiUtils stringValue:fallbackTitle]];
+        }
+        
+        if (cancelTitle) {
+            [authContext setLocalizedCancelTitle:[TiUtils stringValue:cancelTitle]];
+        }
+    }
+
+    // Display the dialog if the security policy allows it (= device has Touch ID enabled)
 	if ([authContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
 		// Make sure this runs on the main thread, for two reasons:
 		// 1. This will show an alert dialog, which is a UI component
@@ -226,43 +216,39 @@
 - (void)invalidate:(id)unused
 {
     if (![TiUtils isIOS9OrGreater]) {
-        NSLog(@"[ERROR] This API is only available in iOS 9 and later.");
+        NSLog(@"[ERROR] Ti.TouchID: The method `invalidate` is only available in iOS 9 and later.");
         return;
     }
 
     if (!authContext) {
-        NSLog(@"[ERROR] Cannot invalidate a Touch ID instance that does not exist. Use 'authenticate' before calling this.");
+        NSLog(@"[ERROR] Ti.TouchID: Cannot invalidate a Touch ID instance that does not exist. Use 'authenticate' before calling this.");
         return;
     }
     
     [authContext invalidate];
 }
 
-- (NSDictionary*)deviceCanAuthenticate:(id)args
+- (NSDictionary*)deviceCanAuthenticate:(id)unused
 {
 	if(![TiUtils isIOS8OrGreater]) {
-		NSDictionary * versionResult = [NSDictionary dictionaryWithObjectsAndKeys:
-						@"This API is only available in iOS 8 and later.",@"error",
-						[self ERROR_TOUCH_ID_NOT_AVAILABLE],@"code",
-						NUMBOOL(NO),@"canAuthenticate",nil];
-		return versionResult;
+        return @{
+            @"error":@"The method `deviceCanAuthenticate` is only available in iOS 8 and later.",
+            @"code": [self ERROR_TOUCH_ID_NOT_AVAILABLE],
+            @"canAuthenticate": NUMBOOL(NO)
+        };
 	}
+    
 	LAContext *myContext = [[[LAContext alloc] init] autorelease];
 	NSError *authError = nil;
 	BOOL canAuthenticate = [myContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError];
 	NSMutableDictionary *result = [NSMutableDictionary dictionary];
-	if(authError != nil) {
+	
+    if(authError != nil) {
 		[result setValue:[TiUtils messageFromError:authError] forKey:@"error"];
 		[result setValue:NUMINTEGER([authError code]) forKey:@"code"];
 	}
 	[result setValue:NUMBOOL(canAuthenticate) forKey:@"canAuthenticate"];
 	return result;
-}
-
-+ (BOOL)isAlphaNumeric:(NSString*)value
-{
-    // FIXME: Add proper alphanumberic check
-    return NO; //([value rangeOfCharacterFromSet:[[NSCharacterSet alphanumericCharacterSet] invertedSet]].location == NSNotFound);
 }
 
 + (SecAccessControlCreateFlags)accessControlFlagsFromArgs:(id)args
@@ -274,7 +260,7 @@
     
     if (accessControlMode) {
         if (!accessibilityMode) {
-            NSLog(@"[ERROR] When using \"accessControlMode\" you must also specify the \"accessibilityMode\" property.");
+            NSLog(@"[ERROR] Ti.TouchID: When using `accessControlMode` you must also specify the `accessibilityMode` property.");
         } else if ([accessControlMode isKindOfClass:[NSNumber class]]) {
             optionFlags = accessControlMode;
         } else if ([accessControlMode isKindOfClass:[NSArray class]]) {
@@ -283,8 +269,8 @@
                 optionFlags |= (SecAccessControlCreateFlags)flag;
             }
         } else {
-            NSLog(@"[WARN] The property \"accessControlMode\" must either be a single constant or a logic concatination of multiple constants.");
-            NSLog(@"[WARN] Falling back to default kSecAccessControlUserPresence");            
+            NSLog(@"[WARN] Ti.TouchID: The property \"accessControlMode\" must either be a single constant or a logic concatination of multiple constants.");
+            NSLog(@"[WARN] Ti.TouchID: Falling back to default `ACCESS_CONTROL_USER_PRESENCE`");
         }
     }
     

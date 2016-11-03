@@ -24,6 +24,11 @@
 - (void)authenticate:(id)args;
 
 /**
+ Invalidates the currently displayed Touch ID dialog if existing.
+ */
+- (void)invalidate:(id)unused;
+
+/**
  Save a new value to the keychain. The value is identified by it's keychain 
  item identifier and an optional access-group.
  */
@@ -37,7 +42,7 @@
 
 /**
  Deletes a value from the keychain. The value is identified by it's
- keychain item identifier and an optional access-group. 
+ keychain item identifier and an optional access-group.
  */
 - (void)deleteValueFromKeychain:(id)args;
 
@@ -45,6 +50,6 @@
  Determines if the current device currently can authenticate with Touch ID.
  @return `NSDictionary` that contains infos about the device authentication.
  */
-- (NSDictionary*)deviceCanAuthenticate:(id)args;
+- (NSDictionary*)deviceCanAuthenticate:(id)unused;
 
 @end

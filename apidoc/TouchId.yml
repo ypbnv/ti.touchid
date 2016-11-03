@@ -142,13 +142,13 @@ methods:
   - name: deviceCanAuthenticate
     summary: Checks to see if device is configured for Touch ID authentication.
     description: |
-      var TiTouchId = require("ti.touchid");
-      var result = TiTouchId.deviceCanAuthenticate();
-      if (!result.canAuthenticate) {
-        alert('Message: ' + result.error + '\nCode: ' + result.code);  
-        } else {
-          alert('device can authenticate');
-        }
+        Example usage:
+      
+            if (!TiTouchId.deviceCanAuthenticate()) {
+                alert('Message: ' + result.error + '\nCode: ' + result.code);  
+            } else {
+                alert('device can authenticate');
+            }
     returns:
         type: DeviceCanAuthenticateResult
 
@@ -419,21 +419,65 @@ properties:
   - name: reason
     optional: false
     summary: |
+        Note: This property is iOS only!
+
         Message displayed in the authentication dialog describing why the
-        application is requesting authentication (iOS only).
+        application is requesting authentication.
     type: String
+    
   - name: maxBiometryFailures
     summary: |
-        Allows setting the limit for the number of failures 
-        during biometric authentication (iOS only).
+        Note: This property is iOS only!
+
+        Allows setting the limit for the number of failures during biometric 
+        authentication. When the specified limit is exceeded, the evaluation of 
+        the <Modules.TouchId.authenticate> method will fail with the error
+        <Modules.TouchId.ERROR_AUTHENTICATION_FAILED>. By default this property 
+        is undefined and the biometric authentication fails after 3 wrong attempts. 
+        Please note that setting this property with high values does not prevent 
+        biometry lockout after 5 wrong attempts.
     type: Number
     since: "2.1.0"
+    osver: {ios: {min: "9.0"}}
+    
   - name: allowableReuseDuration
     summary: |
-        Time interval for accepting a successful Touch ID 
-        device unlock (on the lock screen) from the past (iOS only).
+        Note: This property is iOS only!
+
+        This property can be set with a time interval in seconds. If the device 
+        was successfully unlocked by Touch ID within this time interval, then 
+        Touch ID authentication on this context will succeed automatically and the 
+        reply block will be called without prompting user for Touch ID.
+
+        The default value is 0, meaning that no previous TouchID unlock can be reused.
+
+        This property is meant only for reusing Touch ID matches from the device 
+        lock screen. It does not allow reusing previous Touch ID matches in 
+        application or between applications.
+
+        The maximum supported interval is 5 minutes and setting the value beyond 
+        5 minutes does not increase the accepted interval.    
     type: Number
     since: "2.1.0"
+    osver: {ios: {min: "9.0"}}
+    
+  - name: fallbackTitle
+    summary: |
+        Allows fallback button title customization. A default localized title 
+        "Enter Password" is used when this property is left nil. If set to empty 
+        string, the button will be hidden.
+    type: String
+    since: "2.1.0"
+    osver: {ios: {min: "10.0"}}
+    
+  - name: cancelTitle
+    summary: |
+        Allows cancel button title customization. A default localized title "Cancel" 
+        is used when this property is not defined or is set to empty string.
+    type: String
+    since: "2.1.0"
+    osver: {ios: {min: "10.0"}}
+  
   - name: callback
     optional: false
     summary: |
