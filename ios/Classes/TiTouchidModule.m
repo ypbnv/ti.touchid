@@ -28,6 +28,11 @@
 	return @"ti.touchid";
 }
 
+- (void)dealloc
+{
+    RELEASE_TO_NIL(authContext);
+}
+
 #pragma mark Public API
 
 - (NSNumber*)isSupported:(id)unused
@@ -161,34 +166,36 @@
 	if(![[self isSupported:nil] boolValue]) {
 		TiThreadPerformOnMainThread(^{
 			NSMutableDictionary *event = [NSMutableDictionary dictionary];
-			[event setValue:@"This API is only available in iOS 8 and above" forKey:@"error"];
+			[event setValue:@"This API is only available in iOS 8 and later." forKey:@"error"];
 			[event setValue:[self ERROR_TOUCH_ID_NOT_AVAILABLE] forKey:@"code"];
 			[event setValue:NUMBOOL(NO) forKey:@"success"];
 			[callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
 		}, NO);
 		return;
 	}
-	LAContext *myContext = [[[LAContext alloc] init] autorelease];
+    
+    RELEASE_TO_NIL(authContext);
+	authContext = [[LAContext alloc] init];
 	NSError *authError = nil;
     
     if (![TiUtils isIOS9OrGreater]) {
         TiThreadPerformOnMainThread(^{
             if (maxBiometryFailures) {
-                [myContext setMaxBiometryFailures:[TiUtils intValue:maxBiometryFailures]];
+                [authContext setMaxBiometryFailures:[TiUtils intValue:maxBiometryFailures]];
             }
             
             if (allowableReuseDuration) {
-                [myContext setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
+                [authContext setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
             }
         }, NO);
     }
 	
-	if ([myContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
+	if ([authContext canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
 		// Make sure this runs on the main thread, for two reasons:
 		// 1. This will show an alert dialog, which is a UI component
 		// 2. The callback function (KrollCallback) needs to run on main thread
 		TiThreadPerformOnMainThread(^{
-			[myContext evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:reason reply:^(BOOL success, NSError *error) {
+			[authContext evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:reason reply:^(BOOL success, NSError *error) {
 			 NSMutableDictionary *event = [NSMutableDictionary dictionary];
 			 if(error != nil) {
 				 [event setValue:[error localizedDescription] forKey:@"error"];
@@ -216,11 +223,26 @@
 	}, NO);
 }
 
+- (void)invalidate:(id)unused
+{
+    if (![TiUtils isIOS9OrGreater]) {
+        NSLog(@"[ERROR] This API is only available in iOS 9 and later.");
+        return;
+    }
+
+    if (!authContext) {
+        NSLog(@"[ERROR] Cannot invalidate a Touch ID instance that does not exist. Use 'authenticate' before calling this.");
+        return;
+    }
+    
+    [authContext invalidate];
+}
+
 - (NSDictionary*)deviceCanAuthenticate:(id)args
 {
 	if(![TiUtils isIOS8OrGreater]) {
 		NSDictionary * versionResult = [NSDictionary dictionaryWithObjectsAndKeys:
-						@"This API is only available in iOS 8 and above",@"error",
+						@"This API is only available in iOS 8 and later.",@"error",
 						[self ERROR_TOUCH_ID_NOT_AVAILABLE],@"code",
 						NUMBOOL(NO),@"canAuthenticate",nil];
 		return versionResult;

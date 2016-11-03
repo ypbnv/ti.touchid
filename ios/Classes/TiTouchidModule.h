@@ -8,7 +8,9 @@
 
 #import "TiModule.h"
 
-@interface TiTouchidModule : TiModule
+@interface TiTouchidModule : TiModule {
+    LAContext *authContext;
+}
 
 /**
  Determines if the current device supports Touch ID.

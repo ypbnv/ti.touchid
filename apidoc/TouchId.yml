@@ -41,7 +41,9 @@ description: |
 
         TouchId.authenticate({
             reason: "Need to modify personal settings.",
-            callback: authCB
+            callback: function(e) {
+                Ti.API.info(e);
+            }
         });
 
     ### Sample Application
@@ -61,18 +63,21 @@ methods:
       next update for Android.
     parameters:
       - name: params
-        summary: |
-            Dictionary containing two properties:
+        summary: Dictionary of arguments passed to the method, e.g. the reason to autheicate and the callback.
+        type: TouchIdAuthenticationType
 
-              * `reason` (String): Message displayed in the authentication dialog describing why the
-                application is requesting authentication. This is for iOS only.
-              * `callback` (Function): Callback function executed after the authentication
-                completes. The callback function is passed a dictionary with three properties:
-
-                  * `success` (Boolean): Set to true if authentication succeeded.
-                  * `error` (String): System error message.
-                  * `code` (Number): Module `ERROR_*` constant indicating the reason for the failure.
-        type: Dictionary
+  - name: invalidate
+    summary: Invalidates the current Touch ID dialog.
+    description: |
+        The context is invalidated automatically when it is (auto)released. 
+        
+        This method allows invalidating it manually while it is still in scope.
+        Invalidation terminates any existing policy evaluation and the respective call will
+        fail with <Modules.TouchId.ERROR_APP_CANCELLED>. After the context has been invalidated, it can not be
+        used for policy evaluation and an attempt to do so will fail with <Modules.TouchId.ERROR_INVALID_CONTEXT>.
+    
+    platforms: [iphone, ipad]
+    since: "2.1.0"
 
   - name: deviceCanAuthenticate
     summary: Checks to see if device is configured for Touch ID authentication.
@@ -156,12 +161,46 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
+
+---
+name: TouchIdAuthenticationType
+platforms: [android, iphone, ipad]
+summary: Dictionary passed to <Modules.TouchId.authenticate>.
+properties:
+  - name: reason
+    optional: false
+    summary: |
+        Message displayed in the authentication dialog describing why the
+        application is requesting authentication (iOS only).
+    type: String
+  - name: maxBiometryFailures
+    summary: |
+        Allows setting the limit for the number of failures 
+        during biometric authentication (iOS only).
+    type: Number
+    since: "2.1.0"
+  - name: allowableReuseDuration
+    summary: |
+        Time interval for accepting a successful Touch ID 
+        device unlock (on the lock screen) from the past (iOS only).
+    type: Number
+    since: "2.1.0"
+  - name: callback
+    optional: false
+    summary: |
+        Callback function executed after the authentication
+        completes. The callback function is passed a dictionary with three properties:
+
+          * `success` (Boolean): Set to true if authentication succeeded.
+          * `error` (String): System error message.
+          * `code` (Number): Module `ERROR_*` constant indicating the reason for the failure.        
+    type: Callback
     
 ---
 name: DeviceCanAuthenticateResult
 platforms: [android, iphone, ipad]
 since: "1.0.1"
-summary: Dictionary containing results for <ti.touchid.deviceCanAuthenticate>.
+summary: Dictionary containing results for <Modules.TouchId.deviceCanAuthenticate>.
 properties:
   - name: canAuthenticate 
     summary: Set to true if device is configured for touch ID authentication.
