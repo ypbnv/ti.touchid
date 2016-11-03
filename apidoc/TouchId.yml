@@ -45,6 +45,66 @@ description: |
                 Ti.API.info(e);
             }
         });
+        
+    ### Keychain Integration (iOS-only)
+
+    Since 2.1.0, the module support basic and advanced keychain integrations to allow
+    the user to store sensitive information in the native iOS keychain.
+    
+    **Important**: For devices running iOS 10 and later, you now must include an 
+    entitlements file that enables Keychain Sharing Capabilities. To do so, create 
+    a /platform/ios/name.entitlements file (replace name with the name element in 
+    the tiapp.xml) with the following content:
+        
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>keychain-access-groups</key>
+            <array>
+                <!-- APP_ID same as the id value in the tiapp.xml file -->
+                <string>$(AppIdentifierPrefix)APP_ID</string>
+            </array>
+        </dict>
+        </plist>
+    
+    The following example demonstrates the basic usage to save, read and delete 
+    values with the native iOS keychain:
+        
+        // Write to keychain
+        TouchID.saveValueToKeychain({
+            identifier: "password",
+            value: "s3cr3t_p4$$w0rd",
+            callback: function(e) {
+                Ti.API.info(e);
+            }
+        });
+        
+        // Read from keychain
+        TouchID.readValueFromKeychain({
+            identifier: "password",
+            callback: function(e) {
+                Ti.API.info(e);
+            }
+        });
+        
+        // Delete from keychain
+        TouchID.deleteValueFromKeychain({
+            identifier: "password"
+        });
+    
+    For advanced security options, you can specify accessibility mode to the keychain 
+    that will be applied when writing items to the keychain, for example:
+        
+        TouchID.saveValueToKeychain({
+            identifier: "password",
+            accessibilityMode: TouchId.ACCESSIBLE_AFTER_FIRST_UNLOCK,
+            accessControlMode: TouchId.ACCESS_CONTROL_DEVICE_PASSCODE,
+            value: "s3cr3t_p4$$w0rd",
+            callback: function(e) {
+                Ti.API.info(e);
+            }
+        });
 
     ### Sample Application
 
@@ -96,6 +156,42 @@ methods:
     summary: Determines if the current device supports Touch ID.
     returns:
         type: Boolean
+
+  - name: saveValueToKeychain
+    summary: Saves a new value to the iOS keychain
+    description: |
+        Please ensure that the `identifier` does not contain any alphanumeric
+        characters. The system keychain might reject the value in that case.
+    parameters:
+      - name: params
+        summary: Dictionary of arguments passed to the keychain.
+        type: KeychainItemType
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: readValueFromKeychain
+    summary: Reads an existing value to the iOS keychain.
+    description: |
+        Please ensure that the `identifier` does not contain any alphanumeric
+        characters. The system keychain might abort the access in that case.
+    parameters:
+      - name: params
+        summary: Dictionary of arguments passed to the keychain.
+        type: KeychainItemType
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: deleteValueFromKeychain
+    summary: Deletes an existing value from the iOS keychain.
+    description: |
+        Please ensure that the `identifier` does not contain any alphanumeric
+        characters. The system keychain might abort the deletion in that case.
+    parameters:
+      - name: params
+        summary: Dictionary of arguments passed to the keychain.
+        type: KeychainItemType
+    platforms: [iphone, ipad]
+    since: "2.1.0"
 
 properties:
 
@@ -161,6 +257,159 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
+    
+  - name: ACCESSIBLE_WHEN_UNLOCKED
+    summary: |
+        Item data can only be accessed while the device is unlocked. This is 
+        recommended for items that only need be accesible while the application 
+        is in the foreground.  Items with this attribute will migrate to a new 
+        device when using encrypted backups.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESSIBLE_AFTER_FIRST_UNLOCK
+    summary: |
+        Item data can only be accessed once the device has been unlocked after 
+        a restart.  This is recommended for items that need to be accesible by 
+        background applications. Items with this attribute will migrate to a new 
+        device when using encrypted backups.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESSIBLE_ALWAYS
+    summary: |
+        Item data can always be accessed regardless of the lock state of the device.  
+        This is not recommended for anything except system use. Items with this 
+        attribute will migrate to a new device when using encrypted backups.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY
+    summary: |
+         Item data can only be accessed while the device is unlocked. This class 
+         is only available if a passcode is set on the device. This is recommended 
+         for items that only need to be accessible while the application is in the
+         foreground. Items with this attribute will never migrate to a new 
+         device, so after a backup is restored to a new device, these items 
+         will be missing. No items can be stored in this class on devices 
+         without a passcode. Disabling the device passcode will cause all 
+         items in this class to be deleted.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESSIBLE_WHEN_UNLOCKED_THIS_DEVICE_ONLY
+    summary: |
+        Item data can only be accessed while the device is unlocked. This is 
+        recommended for items that only need be accesible while the application 
+        is in the foreground. Items with this attribute will never migrate to a 
+        new device, so after a backup is restored to a new device, these items 
+        will be missing.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESSIBLE_AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY
+    summary: |
+        Item data can only be accessed once the device has been unlocked after a 
+        restart. This is recommended for items that need to be accessible by 
+        background applications. Items with this attribute will never migrate to 
+        a new device, so after a backup is restored to a new device these items 
+        will be missing.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY
+    summary: |
+        Item data can always be accessed regardless of the lock state of the device.  
+        This option is not recommended for anything except system use. Items with 
+        this attribute will never migrate to a new device, so after a backup is
+        restored to a new device, these items will be missing.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESS_CONTROL_USER_PRESENCE
+    summary: |
+        User presence policy using Touch ID or Passcode. Touch ID does not have 
+        to be available or enrolled. Item is still accessible by Touch ID even 
+        if fingers are added or removed.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESS_CONTROL_TOUCH_ID_ANY
+    summary: |
+        Constraint - Touch ID (any finger). Touch ID must be available and at least 
+        one finger must be enrolled. Item is still accessible by Touch ID even if 
+        fingers are added or removed.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESS_CONTROL_TOUCH_ID_CURRENT_SET
+    summary: |
+        Constraint - Touch ID from the set of currently enrolled fingers. Touch ID 
+        must be available and at least one finger must be enrolled. When fingers 
+        are added or removed, the item is invalidated.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESS_CONTROL_DEVICE_PASSCODE
+    summary: Constraint - Device passcode.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESS_CONTROL_OR
+    summary: |
+        Constraint logic operation - When using more than one constraint, at least 
+        one of them must be satisfied.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESS_CONTROL_AND
+    summary: |
+        Constraint logic operation - When using more than one constraint, all must
+        be satisfied.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESS_CONTROL_PRIVATE_KEY_USAGE
+    summary: Create access control for private key operations (i.e. sign operation).
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
+    
+  - name: ACCESS_CONTROL_APPLICATION_PASSWORD
+    summary: |
+        Security: Application provided password for data encryption key generation. 
+        This is not a constraint but additional item encryption mechanism.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "2.1.0"
 
 ---
 name: TouchIdAuthenticationType
@@ -188,8 +437,8 @@ properties:
   - name: callback
     optional: false
     summary: |
-        Callback function executed after the authentication
-        completes. The callback function is passed a dictionary with three properties:
+        Callback function executed after the authentication completes. 
+        The callback function is passed a dictionary with three properties:
 
           * `success` (Boolean): Set to true if authentication succeeded.
           * `error` (String): System error message.
@@ -213,3 +462,51 @@ properties:
   - name: code
     summary: iOS only, Module `ERROR_*` constant indicating the reason for the failure if any.
     type: Number
+
+---
+name: KeychainItemType
+platforms: [iphone, ipad]
+since: "2.1.0"
+summary: | 
+    Dictionary passed to <Modules.TouchId.saveValueToKeychain>,
+    <Modules.TouchId.readValueFromKeychain> or <Modules.TouchId.deleteValueFromKeychain>.
+properties:
+    - name: identifier
+      optional: false
+      summary: |
+          Required identifier to create or receive a keychain item. The identifier 
+          cannot contain alphanumeric characters or it might be rejected by the keychain.
+      type: String
+    
+    - name: callback
+      optional: false
+      summary: |
+          Required callback function that is executed after the the keychain item 
+          is saved/received or rejected by the system keychain.
+      type: Callback
+      
+    - name: accessGroup
+      summary: |
+          Optional identifier used to define the access group the keychain item
+          should be valid. This can be used to share a keychain item across two
+          or more apps that use the same organization group identifier.
+          More information about keychain access groups can be found in the
+          [official iOS documentation](https://developer.apple.com/reference/security/ksecattraccessgroup).
+      type: String
+
+    - name: accessibilityMode  
+      summary: |
+          Optional constant used for determining when a keychain item should be 
+          readable. Use this property with caution to enable advanced access control.
+          More information about this property and it's values can be found in the 
+          [official iOS documentation](https://developer.apple.com/reference/security/1658642-keychain_services/1663541-keychain_item_accessibility_cons).
+      type: Number
+      constants: Modules.TouchId.ACCESSIBLE_*
+      
+    - name: accessControlMode
+      summary: |
+          Optional constants used to determine the access control with the specified 
+          protection type and flags. The constants can be concatenated by using the
+          Bit OR operator, e.g. `optionA | optionB | optionC`.
+      type: Number
+      constants: Modules.TouchId.ACCESS_CONTROL_*
