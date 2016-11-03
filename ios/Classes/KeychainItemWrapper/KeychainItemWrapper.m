@@ -130,8 +130,6 @@ Keychain API expects as a validly constructed container class.
                     CFRelease(accessControl);
                 }
             }
-        } else {
-            genericPasswordQuery[(id)kSecAttrAccessible] = (id)kSecAttrAccessibleAlwaysThisDeviceOnly;
         }
 		
 		// The keychain access group attribute determines if this item can be shared
@@ -345,8 +343,8 @@ Keychain API expects as a validly constructed container class.
         // No previous item found; add the new one.
         result = SecItemAdd((CFDictionaryRef)[self dictionaryToSecItemFormat:keychainItemData], NULL);
         if (result != noErr) {
-            NSLog(@"error creating keychain item: %d", (int) result);
-            NSLog(@"keychainItemData: %@", [keychainItemData description]);
+            NSLog(@"[ERROR] Error creating keychain item: %d", (int) result);
+            NSLog(@"[ERROR] keychainItemData: %@", [keychainItemData description]);
         }
     }
 }

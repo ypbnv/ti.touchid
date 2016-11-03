@@ -107,7 +107,7 @@
     KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
     
     NSString *value = [[wrapper objectForKey:(id)kSecValueData] retain];    
-    NSDictionary * propertiesDict = @{@"success": NUMBOOL(value.length > 0), @"value": value};
+    NSDictionary * propertiesDict = @{@"success": NUMBOOL(value.length > 0), @"value": value ?: @""};
     NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
     
     if ([value length] == 0) {
