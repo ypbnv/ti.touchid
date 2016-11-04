@@ -233,24 +233,24 @@
 
 - (NSDictionary*)deviceCanAuthenticate:(id)unused
 {
-	if (![TiUtils isIOS8OrGreater]) {
+    if (![TiUtils isIOS8OrGreater]) {
         return @{
             @"error":@"The method `deviceCanAuthenticate` is only available in iOS 8 and later.",
             @"code": [self ERROR_TOUCH_ID_NOT_AVAILABLE],
             @"canAuthenticate": NUMBOOL(NO)
         };
-	}
+    }
     
-	NSError *authError = nil;
-	BOOL canAuthenticate = [[self authContext] canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError];
+    NSError *authError = nil;
+    BOOL canAuthenticate = [[self authContext] canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError];
     NSMutableDictionary *result = [NSMutableDictionary dictionaryWithDictionary:@{
         @"canAuthenticate": NUMBOOL(canAuthenticate)
     }];
 	
     if (authError != nil) {
-		[result setValue:[TiUtils messageFromError:authError] forKey:@"error"];
-		[result setValue:NUMINTEGER([authError code]) forKey:@"code"];
-	}
+        [result setValue:[TiUtils messageFromError:authError] forKey:@"error"];
+        [result setValue:NUMINTEGER([authError code]) forKey:@"code"];
+    }
 	
     return result;
 }
