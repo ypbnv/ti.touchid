@@ -424,30 +424,16 @@ properties:
         Message displayed in the authentication dialog describing why the
         application is requesting authentication.
     type: String
-    
-  - name: maxBiometryFailures
-    summary: |
-        Note: This property is iOS only!
-
-        Allows setting the limit for the number of failures during biometric 
-        authentication. When the specified limit is exceeded, the evaluation of 
-        the <Modules.TouchId.authenticate> method will fail with the error
-        <Modules.TouchId.ERROR_AUTHENTICATION_FAILED>. By default this property 
-        is undefined and the biometric authentication fails after 3 wrong attempts. 
-        Please note that setting this property with high values does not prevent 
-        biometry lockout after 5 wrong attempts.
-    type: Number
-    since: "2.1.0"
-    osver: {ios: {min: "9.0"}}
-    
+        
   - name: allowableReuseDuration
     summary: |
         Note: This property is iOS only!
-
-        This property can be set with a time interval in seconds. If the device 
-        was successfully unlocked by Touch ID within this time interval, then 
-        Touch ID authentication on this context will succeed automatically and the 
-        reply block will be called without prompting user for Touch ID.
+        
+        The time interval (in seconds) for accepting a successful Touch ID device 
+        unlock (on the lock screen) from the past.  If the device  was successfully 
+        unlocked by Touch ID within this time interval, then Touch ID authentication 
+        on this context will succeed automatically and the reply block will be 
+        called without prompting user for Touch ID.
 
         The default value is 0, meaning that no previous TouchID unlock can be reused.
 

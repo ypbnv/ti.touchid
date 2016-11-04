@@ -25,8 +25,7 @@ btn.addEventListener('click', function(){
 	
 	TiTouchId.authenticate({
 		reason: 'We need your fingerprint to continue.',
-		maxBiometryFailures: 3, // iOS 9+, optional, maximal attempts: 5
-		allowableReuseDuration: 5, // iOS 9+, optional, in seconds
+		allowableReuseDuration: 30, // iOS 9+, optional, in seconds, only used for lockscreen-unlocks
         fallbackTitle: "Use different auth method?", // iOS 10+, optional
         cancelTitle: "Get me outta here!", // iOS 10+, optional
 		callback: function(e) {
