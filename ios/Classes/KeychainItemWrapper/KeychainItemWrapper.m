@@ -210,6 +210,8 @@ Keychain API expects as a validly constructed container class.
     {
         [keychainItemData setObject:inObject forKey:key];
         [self writeToKeychainWithCompletionBlock:(void (^)(NSError *error))completionBlock];
+    } else {
+        completionBlock(nil);
     }
 }
 
@@ -229,8 +231,7 @@ Keychain API expects as a validly constructed container class.
     {
         NSMutableDictionary *tempDictionary = [self dictionaryToSecItemFormat:keychainItemData];
 		junk = SecItemDelete((CFDictionaryRef)tempDictionary);
-        NSAssert( junk == noErr || junk == errSecItemNotFound, @"Problem deleting current keychain item." );
-        NSLog(@"[ERROR] Problem deleting current keychain item: Item not found");
+        NSAssert( junk == noErr || junk == errSecItemNotFound, @"Problem deleting current keychain item." );        
     }
     
     // Default attributes for keychain item.

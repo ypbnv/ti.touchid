@@ -75,6 +75,8 @@ btnDelete.addEventListener("click", function() {
         identifier: "password",
         accessGroup: appIdentifierPrefix + ".com.appc.touchidtest",
     });
+    
+    Ti.API.info("Deleted keychain item!");
 });
 
 win.add(btnSave);
