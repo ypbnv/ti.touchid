@@ -142,19 +142,20 @@
  */
 - (void)authenticate:(id)args
 {
-	ENSURE_SINGLE_ARG(args, NSDictionary);
+    ENSURE_SINGLE_ARG(args, NSDictionary);
     
-	NSString *reason = [TiUtils stringValue:[args valueForKey:@"reason"]];
+    NSError *authError = nil;
+    NSString *reason = [TiUtils stringValue:[args valueForKey:@"reason"]];
     NSDictionary *isSupportedDict = [self deviceCanAuthenticate:nil];
-	KrollCallback *callback = [args valueForKey:@"callback"];
+    KrollCallback *callback = [args valueForKey:@"callback"];
     id allowableReuseDuration = [args valueForKey:@"allowableReuseDuration"];
     id fallbackTitle = [args valueForKey:@"fallbackTitle"];
     id cancelTitle = [args valueForKey:@"cancelTitle"];
     
-	if(![callback isKindOfClass:[KrollCallback class]]) {
-		NSLog(@"[WARN] Ti.TouchID: The parameter `callback` in `authenticate` must be a function.");
-		return;
-	}
+    if(![callback isKindOfClass:[KrollCallback class]]) {
+        NSLog(@"[WARN] Ti.TouchID: The parameter `callback` in `authenticate` must be a function.");
+        return;
+    }
     
     // Fail when Touch ID is not supported by the current device
 	if([isSupportedDict valueForKey:@"canAuthenticate"] == NUMBOOL(NO)) {
@@ -169,8 +170,6 @@
         }, NO);
 		return;
 	}
-    
-	NSError *authError = nil;
     
     // iOS 9: Expose failure behavior
     if ([TiUtils isIOS9OrGreater]) {
@@ -193,37 +192,38 @@
 #endif
 
     // Display the dialog if the security policy allows it (= device has Touch ID enabled)
-	if ([[self authContext] canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
-		// Make sure this runs on the main thread, for two reasons:
-		// 1. This will show an alert dialog, which is a UI component
-		// 2. The callback function (KrollCallback) needs to run on main thread
-		TiThreadPerformOnMainThread(^{
-			[[self authContext] evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:reason reply:^(BOOL success, NSError *error) {
-			 NSMutableDictionary *event = [NSMutableDictionary dictionary];
-			 if(error != nil) {
-				 [event setValue:[error localizedDescription] forKey:@"error"];
-				 [event setValue:NUMINTEGER([error code]) forKey:@"code"];
-			 }
-			 [event setValue:NUMBOOL(success) forKey:@"success"];
-			 [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
-		 }];
-		}, NO);
-		return;
-	}
+    if ([[self authContext] canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
+        // Make sure this runs on the main thread, for two reasons:
+        // 1. This will show an alert dialog, which is a UI component
+        // 2. The callback function (KrollCallback) needs to run on main thread
+        TiThreadPerformOnMainThread(^{
+            [[self authContext] evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:reason reply:^(BOOL success, NSError *error) {
+                NSMutableDictionary *event = [NSMutableDictionary dictionary];
+                if(error != nil) {
+                    [event setValue:[error localizedDescription] forKey:@"error"];
+                    [event setValue:NUMINTEGER([error code]) forKey:@"code"];
+                }
+                [event setValue:NUMBOOL(success) forKey:@"success"];
+                [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
+            }];
+        }, NO);
+        return;
+    }
 	
-	// Again, make sure the callback function runs on the main thread
-	TiThreadPerformOnMainThread(^{
-		NSMutableDictionary *event = [NSMutableDictionary dictionary];
-		if(authError != nil) {
-			[event setValue:[authError localizedDescription] forKey:@"error"];
-			[event setValue:NUMINTEGER([authError code]) forKey:@"code"];
-		} else {
-			[event setValue:@"Can not evaluate Touch ID" forKey:@"error"];
-			[event setValue:NUMINTEGER(1) forKey:@"code"];
-		}
-		[event setValue:NUMBOOL(NO) forKey:@"success"];
-		[callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
-	}, NO);
+    // Again, make sure the callback function runs on the main thread
+    TiThreadPerformOnMainThread(^{
+        NSMutableDictionary *event = [NSMutableDictionary dictionary];
+        if(authError != nil) {
+            [event setValue:[authError localizedDescription] forKey:@"error"];
+            [event setValue:NUMINTEGER([authError code]) forKey:@"code"];
+        } else {
+            [event setValue:@"Can not evaluate Touch ID" forKey:@"error"];
+            [event setValue:NUMINTEGER(1) forKey:@"code"];
+        }
+        
+        [event setValue:NUMBOOL(NO) forKey:@"success"];
+        [callback call:[NSArray arrayWithObjects:event, nil] thisObject:self];
+    }, NO);
 }
 
 - (void)invalidate:(id)unused

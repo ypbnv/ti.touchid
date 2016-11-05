@@ -26,8 +26,8 @@ btn.addEventListener('click', function(){
 	TiTouchId.authenticate({
 		reason: 'We need your fingerprint to continue.',
 		allowableReuseDuration: 30, // iOS 9+, optional, in seconds, only used for lockscreen-unlocks
-        fallbackTitle: "Use different auth method?", // iOS 10+, optional
-        cancelTitle: "Get me outta here!", // iOS 10+, optional
+		fallbackTitle: "Use different auth method?", // iOS 10+, optional
+		cancelTitle: "Get me outta here!", // iOS 10+, optional
 		callback: function(e) {
 			if (!e.success) {
 				alert('Error! Message: ' + e.error + '\nCode: ' + e.code);
@@ -38,21 +38,21 @@ btn.addEventListener('click', function(){
 					case TiTouchId.ERROR_SYSTEM_CANCEL: Ti.API.info('Error code is TiTouchId.ERROR_SYSTEM_CANCEL'); break;
 					case TiTouchId.ERROR_PASSCODE_NOT_SET: Ti.API.info('Error code is TiTouchId.ERROR_PASSCODE_NOT_SET'); break;
 					case TiTouchId.ERROR_TOUCH_ID_NOT_AVAILABLE: Ti.API.info('Error code is TiTouchId.ERROR_TOUCH_ID_NOT_AVAILABLE'); break;
-                    case TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED: Ti.API.info('Error code is TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED'); break;
-                    case TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED: Ti.API.info('Error code is TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED'); break;
-                    case TiTouchId.ERROR_APP_CANCELLED: Ti.API.info('Error code is TiTouchId.ERROR_APP_CANCELLED'); break;
-                    case TiTouchId.ERROR_INVALID_CONTEXT: Ti.API.info('Error code is TiTouchId.ERROR_INVALID_CONTEXT'); break;
-                    case TiTouchId.ERROR_TOUCH_ID_LOCKOUT: Ti.API.info('Error code is TiTouchId.ERROR_TOUCH_ID_LOCKOUT'); break;
-                    default: Ti.API.info('Error code is unknown'); break;
+					case TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED: Ti.API.info('Error code is TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED'); break;
+					case TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED: Ti.API.info('Error code is TiTouchId.ERROR_TOUCH_ID_NOT_ENROLLED'); break;
+					case TiTouchId.ERROR_APP_CANCELLED: Ti.API.info('Error code is TiTouchId.ERROR_APP_CANCELLED'); break;
+					case TiTouchId.ERROR_INVALID_CONTEXT: Ti.API.info('Error code is TiTouchId.ERROR_INVALID_CONTEXT'); break;
+					case TiTouchId.ERROR_TOUCH_ID_LOCKOUT: Ti.API.info('Error code is TiTouchId.ERROR_TOUCH_ID_LOCKOUT'); break;
+					default: Ti.API.info('Error code is unknown'); break;
 				}
 			} else {
-			  	// do something useful
+				// do something useful
 				alert('YAY! success');
 			}
 		}
 	});
 	
-	// When uncommented, it should invalidate (hide) after 2 seconds
+	// When uncommented, it should invalidate (hide) after 5 seconds
 	setTimeout(function() {
 		// TiTouchId.invalidate();
 	}, 5000);
