@@ -38,8 +38,6 @@
 {
     if (!authContext) {
         authContext = [LAContext new];
-        [authContext setTouchIDAuthenticationAllowableReuseDuration:(NSTimeInterval)240];
-
     }
     
     return authContext;
@@ -73,16 +71,23 @@
     ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
     ENSURE_ARG_FOR_KEY(callback, args, @"callback", KrollCallback);
     
-    KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
-    [wrapper setObject:value forKey:(id)kSecValueData];
-    
-    RELEASE_TO_NIL(wrapper);
-    
-    NSDictionary * propertiesDict = @{@"success": NUMBOOL(YES)};
-    NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
-    
-    [callback call:invocationArray thisObject:self];
-    [invocationArray release];
+    __block KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
+    [wrapper setObject:value forKey:(id)kSecValueData withCompletionBlock:^(NSError *error) {
+        TiThreadPerformOnMainThread(^{
+            NSMutableDictionary *propertiesDict = [NSMutableDictionary dictionaryWithDictionary:@{@"success": NUMBOOL(error == nil)}];
+            
+            if (error) {
+                [propertiesDict setObject:error.localizedDescription forKey:@"error"];
+                [propertiesDict setObject:NUMINTEGER(error.code) forKey:@"code"];
+            }
+            
+            NSArray *invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
+            
+            [callback call:invocationArray thisObject:self];
+            [invocationArray release];
+            RELEASE_TO_NIL(wrapper);
+        }, NO);
+    }];
 }
 
 - (void)readValueFromKeychain:(id)args
@@ -142,7 +147,6 @@
 	NSString *reason = [TiUtils stringValue:[args valueForKey:@"reason"]];
     NSDictionary *isSupportedDict = [self deviceCanAuthenticate:nil];
 	KrollCallback *callback = [args valueForKey:@"callback"];
-    id maxBiometryFailures = [args valueForKey:@"maxBiometryFailures"];
     id allowableReuseDuration = [args valueForKey:@"allowableReuseDuration"];
     id fallbackTitle = [args valueForKey:@"fallbackTitle"];
     id cancelTitle = [args valueForKey:@"cancelTitle"];
@@ -168,6 +172,12 @@
     
 	NSError *authError = nil;
     
+    // iOS 9: Expose failure behavior
+    if ([TiUtils isIOS9OrGreater]) {
+        if (allowableReuseDuration) {
+            [authContext setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
+        }
+    }
 
 #if IS_XCODE_8
     // iOS 10: Expose support for localized titles

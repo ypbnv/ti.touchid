@@ -65,7 +65,8 @@
 
 // Designated initializer.
 - (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *) accessGroup accessibilityMode:(CFStringRef)accessibilityMode accessControlMode:(SecAccessControlCreateFlags)accessControlMode;
-- (void)setObject:(id)inObject forKey:(id)key;
+
+- (void)setObject:(id)inObject forKey:(id)key withCompletionBlock:(void (^)(NSError *error))completionBlock;
 - (id)objectForKey:(id)key;
 
 // Initializes and resets the default generic keychain item data.

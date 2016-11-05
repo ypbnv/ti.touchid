@@ -124,7 +124,7 @@ Keychain API expects as a validly constructed container class.
                 genericPasswordQuery[(id)kSecUseNoAuthenticationUI] = @YES;
                 CFRelease(accessControl);
             } else {
-                NSLog(@"Could not create access control: %@", [(NSError*)error localizedDescription]);
+                NSLog(@"[ERROR] Could not create access control: %@", [(NSError*)error localizedDescription]);
                 
                 if (accessControl) {
                     CFRelease(accessControl);
@@ -188,8 +188,6 @@ Keychain API expects as a validly constructed container class.
         }
         
         [keychainItemData setObject:@"ti.touchid" forKey:(id)kSecAttrService];
-
-       
 		[outDictionary release];
     }
     
@@ -204,14 +202,14 @@ Keychain API expects as a validly constructed container class.
 	[super dealloc];
 }
 
-- (void)setObject:(id)inObject forKey:(id)key 
+- (void)setObject:(id)inObject forKey:(id)key withCompletionBlock:(void (^)(NSError *error))completionBlock
 {
     if (inObject == nil) return;
     id currentObject = [keychainItemData objectForKey:key];
     if (![currentObject isEqual:inObject])
     {
         [keychainItemData setObject:inObject forKey:key];
-        [self writeToKeychain];
+        [self writeToKeychainWithCompletionBlock:(void (^)(NSError *error))completionBlock];
     }
 }
 
@@ -231,7 +229,8 @@ Keychain API expects as a validly constructed container class.
     {
         NSMutableDictionary *tempDictionary = [self dictionaryToSecItemFormat:keychainItemData];
 		junk = SecItemDelete((CFDictionaryRef)tempDictionary);
-        NSAssert( junk == noErr || junk == errSecItemNotFound, @"Problem deleting current dictionary." );
+        NSAssert( junk == noErr || junk == errSecItemNotFound, @"Problem deleting current keychain item." );
+        NSLog(@"[ERROR] Problem deleting current keychain item: Item not found");
     }
     
     // Default attributes for keychain item.
@@ -291,6 +290,7 @@ Keychain API expects as a validly constructed container class.
     {
         // Don't do anything if nothing is found.
         NSAssert(NO, @"Serious error, no matching item found in the keychain.\n");
+        NSLog(@"[ERROR] No matching item found in the keychain.");
     }
     
     [passwordData release];
@@ -298,7 +298,7 @@ Keychain API expects as a validly constructed container class.
 	return returnDictionary;
 }
 
-- (void)writeToKeychain
+- (void)writeToKeychainWithCompletionBlock:(void (^)(NSError *error))completionBlock
 {
     NSDictionary *attributes = NULL;
     NSMutableDictionary *updateItem = NULL;
@@ -334,8 +334,11 @@ Keychain API expects as a validly constructed container class.
 		
         result = SecItemUpdate((CFDictionaryRef)updateItem, (CFDictionaryRef)tempCheck);
         if (result != noErr) {
-            NSLog(@"error updating keychain item: %d", (int) result);
-            NSLog(@"updateItem: %@", [updateItem description]);
+            completionBlock([NSError errorWithDomain:NSOSStatusErrorDomain
+                                                code:(int)result
+                                            userInfo:@{NSLocalizedDescriptionKey: @"Error updating keychain item"}]);
+        } else {
+            completionBlock(nil);
         }
     }
     else
@@ -343,8 +346,11 @@ Keychain API expects as a validly constructed container class.
         // No previous item found; add the new one.
         result = SecItemAdd((CFDictionaryRef)[self dictionaryToSecItemFormat:keychainItemData], NULL);
         if (result != noErr) {
-            NSLog(@"[ERROR] Error creating keychain item: %d", (int) result);
-            NSLog(@"[ERROR] keychainItemData: %@", [keychainItemData description]);
+            completionBlock([NSError errorWithDomain:NSOSStatusErrorDomain
+                                                code:(int)result
+                                            userInfo:@{NSLocalizedDescriptionKey: @"Error creating keychain item"}]);
+        } else {
+            completionBlock(nil);
         }
     }
 }
