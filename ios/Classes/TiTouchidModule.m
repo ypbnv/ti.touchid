@@ -275,22 +275,13 @@
             NSLog(@"[ERROR] Ti.TouchID: When using `accessControlMode` you must also specify the `accessibilityMode` property.");
         } else if ([accessControlMode isKindOfClass:[NSNumber class]]) {
             return (SecAccessControlCreateFlags)accessControlMode;
-        } else if ([accessControlMode isKindOfClass:[NSArray class]]) {
-            SecAccessControlCreateFlags optionFlags;
-
-            for (id flag in accessControlMode) {
-                ENSURE_TYPE(flag, NSNumber); // flags are of type "SecAccessControlCreateFlags", which is "CFOptionFlags", which is "long", which is "NSNumber"
-                optionFlags |= (SecAccessControlCreateFlags)flag;
-            }
-            
-            return optionFlags;
         } else {
-            NSLog(@"[WARN] Ti.TouchID: The property \"accessControlMode\" must either be a single constant or a logic concatination of multiple constants.");
+            NSLog(@"[WARN] Ti.TouchID: The property \"accessControlMode\" must either be a single constant or an array of multiple constants.");
             NSLog(@"[WARN] Ti.TouchID: Falling back to default `ACCESS_CONTROL_USER_PRESENCE`");
         }
     }
     
-    return nil;
+    return kSecAccessControlUserPresence;
 }
 
 - (KeychainItemWrapper*)keychainItemWrapperFromArgs:(id)args
@@ -399,13 +390,13 @@ MAKE_SYSTEM_STR(ACCESSIBLE_WHEN_UNLOCKED_THIS_DEVICE_ONLY, kSecAttrAccessibleWhe
 MAKE_SYSTEM_STR(ACCESSIBLE_AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY, kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly);
 MAKE_SYSTEM_STR(ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY, kSecAttrAccessibleAlwaysThisDeviceOnly);
 
-MAKE_SYSTEM_PROP(ACCESS_CONTROL_USER_PRESENCE, kSecAccessControlUserPresence);
-MAKE_SYSTEM_PROP(ACCESS_CONTROL_TOUCH_ID_ANY, kSecAccessControlTouchIDAny);
-MAKE_SYSTEM_PROP(ACCESS_CONTROL_TOUCH_ID_CURRENT_SET, kSecAccessControlTouchIDCurrentSet);
-MAKE_SYSTEM_PROP(ACCESS_CONTROL_DEVICE_PASSCODE, kSecAccessControlDevicePasscode);
-MAKE_SYSTEM_PROP(ACCESS_CONTROL_OR, kSecAccessControlOr);
-MAKE_SYSTEM_PROP(ACCESS_CONTROL_AND, kSecAccessControlAnd);
-MAKE_SYSTEM_PROP(ACCESS_CONTROL_PRIVATE_KEY_USAGE, kSecAccessControlPrivateKeyUsage);
-MAKE_SYSTEM_PROP(ACCESS_CONTROL_APPLICATION_PASSWORD, kSecAccessControlApplicationPassword);
+MAKE_SYSTEM_PROP(ACCESS_CONTROL_USER_PRESENCE, 1); // kSecAccessControlUserPresence
+MAKE_SYSTEM_PROP(ACCESS_CONTROL_TOUCH_ID_ANY, 2); // kSecAccessControlTouchIDAny
+MAKE_SYSTEM_PROP(ACCESS_CONTROL_TOUCH_ID_CURRENT_SET, 4); // kSecAccessControlTouchIDCurrentSet
+MAKE_SYSTEM_PROP(ACCESS_CONTROL_DEVICE_PASSCODE, 16); // kSecAccessControlDevicePasscode
+MAKE_SYSTEM_PROP(ACCESS_CONTROL_OR, 16384); // kSecAccessControlOr
+MAKE_SYSTEM_PROP(ACCESS_CONTROL_AND, 32768); // kSecAccessControlAnd
+MAKE_SYSTEM_PROP(ACCESS_CONTROL_PRIVATE_KEY_USAGE, 1073741824); // kSecAccessControlPrivateKeyUsage
+MAKE_SYSTEM_PROP(ACCESS_CONTROL_APPLICATION_PASSWORD, 2147483648); // kSecAccessControlApplicationPassword
 
 @end
