@@ -64,7 +64,7 @@
 @property (nonatomic, retain) NSMutableDictionary *genericPasswordQuery;
 
 // Designated initializer.
-- (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *) accessGroup accessibilityMode:(CFStringRef)accessibilityMode accessControlMode:(SecAccessControlCreateFlags)accessControlMode;
+- (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *) accessGroup accessibilityMode:(CFStringRef)accessibilityMode accessControlMode:(long)accessControlMode;
 
 - (void)setObject:(id)inObject forKey:(id)key withCompletionBlock:(void (^)(NSError *error))completionBlock;
 - (id)objectForKey:(id)key;

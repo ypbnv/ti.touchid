@@ -100,7 +100,15 @@
     KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
     
     NSString *value = [[wrapper objectForKey:(id)kSecValueData] retain];    
-    NSDictionary * propertiesDict = @{@"success": NUMBOOL(value.length > 0), @"value": value ?: @""};
+    NSMutableDictionary * propertiesDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:NUMBOOL(value.length > 0), @"success", nil];
+    
+    if (value.length == 0) {
+        [propertiesDict setObject:@"Keychain item does not exist" forKey:@"error"];
+        [propertiesDict setObject:NUMINTEGER(-1) forKey:@"code"];
+    } else {
+        [propertiesDict setObject:value forKey:@"value"];
+    }
+    
     NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
     
     if ([value length] == 0) {
@@ -265,7 +273,7 @@
     return result;
 }
 
-+ (SecAccessControlCreateFlags)accessControlFlagsFromArgs:(id)args
++ (long)accessControlFlagsFromArgs:(id)args
 {
     id accessControlMode = [args objectForKey:@"accessControlMode"];
     id accessibilityMode = [args objectForKey:@"accessibilityMode"];
@@ -274,7 +282,7 @@
         if (!accessibilityMode) {
             NSLog(@"[ERROR] Ti.TouchID: When using `accessControlMode` you must also specify the `accessibilityMode` property.");
         } else if ([accessControlMode isKindOfClass:[NSNumber class]]) {
-            return (SecAccessControlCreateFlags)accessControlMode;
+            return accessControlMode;
         } else {
             NSLog(@"[WARN] Ti.TouchID: The property \"accessControlMode\" must either be a single constant or an array of multiple constants.");
             NSLog(@"[WARN] Ti.TouchID: Falling back to default `ACCESS_CONTROL_USER_PRESENCE`");
@@ -296,7 +304,7 @@
     
     return [[[KeychainItemWrapper alloc] initWithIdentifier:identifier
                                                 accessGroup:accessGroup
-                                          accessibilityMode:(CFStringRef)accessibilityMode
+                                          accessibilityMode:(__bridge CFStringRef)accessibilityMode
                                           accessControlMode:[TiTouchidModule accessControlFlagsFromArgs:args]] autorelease];
 }
 

@@ -91,7 +91,7 @@ Keychain API expects as a validly constructed container class.
 
 @synthesize keychainItemData, genericPasswordQuery;
 
-- (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *)accessGroup accessibilityMode:(CFStringRef)accessibilityMode accessControlMode:(SecAccessControlCreateFlags)accessControlMode
+- (id)initWithIdentifier: (NSString *)identifier accessGroup:(NSString *)accessGroup accessibilityMode:(CFStringRef)accessibilityMode accessControlMode:(long)accessControlMode
 {
     if (self = [super init])
     {
@@ -209,7 +209,7 @@ Keychain API expects as a validly constructed container class.
     if (![currentObject isEqual:inObject])
     {
         [keychainItemData setObject:inObject forKey:key];
-        [self writeToKeychainWithCompletionBlock:(void (^)(NSError *error))completionBlock];
+        [self writeToKeychainWithCompletionBlock:completionBlock];
     } else {
         completionBlock(nil);
     }
