@@ -61,77 +61,6 @@
     return NUMBOOL(isSupported);
 }
 
-- (void)saveValueToKeychain:(id)args
-{
-    ENSURE_SINGLE_ARG(args, NSDictionary);
-    
-    NSString *value;
-    KrollCallback *callback;
-    
-    ENSURE_ARG_FOR_KEY(value, args, @"value", NSString);
-    ENSURE_ARG_FOR_KEY(callback, args, @"callback", KrollCallback);
-    
-    __block KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
-    [wrapper setObject:value forKey:(id)kSecValueData withCompletionBlock:^(NSError *error) {
-        TiThreadPerformOnMainThread(^{
-            NSMutableDictionary *propertiesDict = [NSMutableDictionary dictionaryWithDictionary:@{@"success": NUMBOOL(error == nil)}];
-            
-            if (error) {
-                [propertiesDict setObject:error.localizedDescription forKey:@"error"];
-                [propertiesDict setObject:NUMINTEGER(error.code) forKey:@"code"];
-            }
-            
-            NSArray *invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
-            
-            [callback call:invocationArray thisObject:self];
-            [invocationArray release];
-            RELEASE_TO_NIL(wrapper);
-        }, NO);
-    }];
-}
-
-- (void)readValueFromKeychain:(id)args
-{
-    ENSURE_SINGLE_ARG(args, NSDictionary);
-
-    KrollCallback *callback;
-    ENSURE_ARG_FOR_KEY(callback, args, @"callback", KrollCallback);
-    
-    KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
-    
-    NSString *value = [[wrapper objectForKey:(id)kSecValueData] retain];    
-    NSMutableDictionary * propertiesDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:NUMBOOL(value.length > 0), @"success", nil];
-    
-    if (value.length == 0) {
-        [propertiesDict setObject:@"Keychain item does not exist" forKey:@"error"];
-        [propertiesDict setObject:NUMINTEGER(-1) forKey:@"code"];
-    } else {
-        [propertiesDict setObject:value forKey:@"value"];
-    }
-    
-    NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
-    
-    if ([value length] == 0) {
-        [callback call:invocationArray thisObject:self];
-    } else {
-        [callback call:invocationArray thisObject:self];
-    }
-    
-    [invocationArray release];
-    RELEASE_TO_NIL(wrapper);
-    RELEASE_TO_NIL(value);
-}
-
-- (void)deleteValueFromKeychain:(id)args
-{
-    ENSURE_SINGLE_ARG(args, NSDictionary);
-    
-    KeychainItemWrapper *wrapper = [[self keychainItemWrapperFromArgs:args] retain];
-    [wrapper resetKeychainItem];
-    
-    RELEASE_TO_NIL(wrapper);
-}
-
 /**
  * To be used this way:
  *
@@ -271,41 +200,6 @@
     }
 	
     return result;
-}
-
-+ (long)accessControlFlagsFromArgs:(id)args
-{
-    id accessControlMode = [args objectForKey:@"accessControlMode"];
-    id accessibilityMode = [args objectForKey:@"accessibilityMode"];
-    
-    if (accessControlMode) {
-        if (!accessibilityMode) {
-            NSLog(@"[ERROR] Ti.TouchID: When using `accessControlMode` you must also specify the `accessibilityMode` property.");
-        } else if ([accessControlMode isKindOfClass:[NSNumber class]]) {
-            return accessControlMode;
-        } else {
-            NSLog(@"[WARN] Ti.TouchID: The property \"accessControlMode\" must either be a single constant or an array of multiple constants.");
-            NSLog(@"[WARN] Ti.TouchID: Falling back to default `ACCESS_CONTROL_USER_PRESENCE`");
-        }
-    }
-    
-    return kSecAccessControlUserPresence;
-}
-
-- (KeychainItemWrapper*)keychainItemWrapperFromArgs:(id)args
-{
-    NSString *identifier;
-    NSString *accessGroup;
-    NSString *accessibilityMode;
-    
-    ENSURE_ARG_FOR_KEY(identifier, args, @"identifier", NSString);
-    ENSURE_ARG_OR_NIL_FOR_KEY(accessGroup, args, @"accessGroup", NSString);
-    ENSURE_ARG_OR_NIL_FOR_KEY(accessibilityMode, args, @"accessibilityMode", NSString);
-    
-    return [[[KeychainItemWrapper alloc] initWithIdentifier:identifier
-                                                accessGroup:accessGroup
-                                          accessibilityMode:(__bridge CFStringRef)accessibilityMode
-                                          accessControlMode:[TiTouchidModule accessControlFlagsFromArgs:args]] autorelease];
 }
 
 #pragma mark Constants

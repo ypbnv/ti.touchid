@@ -29,6 +29,8 @@
 		AA747D9F0F9514B9006C5449 /* TiTouchid_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = AA747D9E0F9514B9006C5449 /* TiTouchid_Prefix.pch */; };
 		AACBBE4A0F95108600F1A2B1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AACBBE490F95108600F1A2B1 /* Foundation.framework */; };
 		B66F05FA19895E6A0097A3F4 /* LocalAuthentication.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B66F05F919895E6A0097A3F4 /* LocalAuthentication.framework */; };
+		DB1AA25F1DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.h in Headers */ = {isa = PBXBuildFile; fileRef = DB1AA25D1DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.h */; };
+		DB1AA2601DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = DB1AA25E1DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.m */; };
 		DB7ADD7E1DCB38BD00163180 /* KeychainItemWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = DB7ADD7C1DCB38BD00163180 /* KeychainItemWrapper.h */; };
 		DB7ADD7F1DCB38BD00163180 /* KeychainItemWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = DB7ADD7D1DCB38BD00163180 /* KeychainItemWrapper.m */; };
 /* End PBXBuildFile section */
@@ -54,6 +56,8 @@
 		B66F05F919895E6A0097A3F4 /* LocalAuthentication.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LocalAuthentication.framework; path = System/Library/Frameworks/LocalAuthentication.framework; sourceTree = SDKROOT; };
 		B66F05FB198968D40097A3F4 /* module.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = module.xcconfig; sourceTree = "<group>"; };
 		D2AAC07E0554694100DB518D /* libTiTouchid.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libTiTouchid.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		DB1AA25D1DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = TiTouchidKeychainItemProxy.h; path = Classes/TiTouchidKeychainItemProxy.h; sourceTree = "<group>"; };
+		DB1AA25E1DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = TiTouchidKeychainItemProxy.m; path = Classes/TiTouchidKeychainItemProxy.m; sourceTree = "<group>"; };
 		DB7ADD7C1DCB38BD00163180 /* KeychainItemWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KeychainItemWrapper.h; sourceTree = "<group>"; };
 		DB7ADD7D1DCB38BD00163180 /* KeychainItemWrapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KeychainItemWrapper.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -107,6 +111,8 @@
 				24DE9E1011C5FE74003F90F6 /* TiTouchidModuleAssets.m */,
 				24DD6CF71134B3F500162E58 /* TiTouchidModule.h */,
 				24DD6CF81134B3F500162E58 /* TiTouchidModule.m */,
+				DB1AA25D1DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.h */,
+				DB1AA25E1DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.m */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -138,6 +144,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB1AA25F1DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.h in Headers */,
 				AA747D9F0F9514B9006C5449 /* TiTouchid_Prefix.pch in Headers */,
 				24DD6CF91134B3F500162E58 /* TiTouchidModule.h in Headers */,
 				24DE9E1111C5FE74003F90F6 /* TiTouchidModuleAssets.h in Headers */,
@@ -216,6 +223,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				24DD6CFA1134B3F500162E58 /* TiTouchidModule.m in Sources */,
+				DB1AA2601DDCC90F00B5A8D3 /* TiTouchidKeychainItemProxy.m in Sources */,
 				24DE9E1211C5FE74003F90F6 /* TiTouchidModuleAssets.m in Sources */,
 				DB7ADD7F1DCB38BD00163180 /* KeychainItemWrapper.m in Sources */,
 			);

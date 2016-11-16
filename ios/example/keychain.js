@@ -3,41 +3,57 @@
  * Copyright (c) 2009-2016 by Appcelerator, Inc. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
- * Author: Hans Knöchel / 2016-11-05
  *
  */
+var TouchID = require("ti.touchid");
+
+// -- IMPORTANT --
+// This prefix is required for device and production builds
+// and will be ignored for simulator builds. It is the Team-ID 
+// of your provisioning profile.
+var appIdentifierPrefix = "<YOU-APP-IDENTIFIER-PREFIX>.";
+
 var win = Ti.UI.createWindow({
     backgroundColor: "#fff",
     layout: "vertical"
 });
 
 var btnSave = Ti.UI.createButton({
-    title: "Save password to keychain",
+    title: "Save password to keychain!",
     top: 40
 });
 
-// -- IMPORTANT --
-// This prefix is required for device and production builds
-// and will be ignored for simulator builds. It is the Team-ID 
-// of your provisioning profile
-var appIdentifierPrefix = "<YOU-APP-IDENTIFIER-PREFIX>";
+var keychainItem = TouchID.createKeychainItem({
+    identifier: "password",
+    accessGroup: appIdentifierPrefix + "com.appc.touchidtest"
+});
+
+keychainItem.addEventListener("save", function(e) {
+    if (!e.success) {
+        Ti.API.error("Error: " + e.error);
+        return;
+    }
+    
+    Ti.API.info("Successfully saved!");
+    Ti.API.info(e);
+});
+
+keychainItem.addEventListener("read", function(e) {
+    if (!e.success) {
+        Ti.API.error("Error: " + e.error);
+        return;
+    }
+    
+    Ti.API.info("Successfully read!");
+    Ti.API.info(e);
+});
+
+keychainItem.addEventListener("reset", function() {
+    Ti.API.info("Successfully resetted!");
+});
 
 btnSave.addEventListener("click", function() {
-    var TouchID = require("ti.touchid");
-
-    TouchID.saveValueToKeychain({
-        identifier: "password",
-        accessGroup: appIdentifierPrefix + ".com.appc.touchidtest",
-        value: "s3cr3t_p4$$w0rd",
-        callback: function(e) {
-            if (!e.success) {
-                Ti.API.error("Error: " + e.error + " (Code: " + e.code + ")");
-                return;
-            }
-            Ti.API.info("Success!");
-            Ti.API.info(e);
-        },
-    });
+    keychainItem.save("s3cr3t_p4$$w0rd");
 });
 
 var btnRead = Ti.UI.createButton({
@@ -46,20 +62,7 @@ var btnRead = Ti.UI.createButton({
 });
 
 btnRead.addEventListener("click", function() {
-    var TouchID = require("ti.touchid");
-
-    TouchID.readValueFromKeychain({
-        identifier: "password",
-        accessGroup: appIdentifierPrefix + ".com.appc.touchidtest",
-        callback: function(e) {
-            if (!e.success) {
-                Ti.API.error("Error! Probably the keychain item does not exist");
-                return;
-            }
-            Ti.API.info("Success!");
-            Ti.API.info(e);
-        },
-    });
+    keychainItem.read();
 });
 
 
@@ -69,14 +72,7 @@ var btnDelete = Ti.UI.createButton({
 });
 
 btnDelete.addEventListener("click", function() {
-    var TouchID = require("ti.touchid");
-
-    TouchID.deleteValueFromKeychain({
-        identifier: "password",
-        accessGroup: appIdentifierPrefix + ".com.appc.touchidtest",
-    });
-    
-    Ti.API.info("Deleted keychain item!");
+    keychainItem.reset();
 });
 
 win.add(btnSave);
