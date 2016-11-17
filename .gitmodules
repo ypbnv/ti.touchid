@@ -1,3 +1,2 @@
 [submodule "ios/APSKeychainWrapper"]
 	path = ios/APSKeychainWrapper
-	url = git@github.com:hansemannn/APSKeychainWrapper.git
