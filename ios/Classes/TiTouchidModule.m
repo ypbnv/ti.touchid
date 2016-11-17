@@ -12,7 +12,6 @@
 #import "TiBase.h"
 #import "TiHost.h"
 #import "TiUtils.h"
-#import "KeychainItemWrapper.h"
 
 @implementation TiTouchidModule
 

@@ -17,20 +17,33 @@
         NSDictionary *params = [args objectAtIndex:0];
         
         identifier = [[params objectForKey:@"identifier"] copy];
-        accessibilityMode = [[params objectForKey:@"accessibilityMode"] copy];
         accessGroup = [[params objectForKey:@"accessGroup"] copy];
+        accessibilityMode = [[params objectForKey:@"accessibilityMode"] copy];
         accessControlMode = [[params objectForKey:@"accessControlMode"] retain];
     }
     return self;
 }
 
-- (KeychainItemWrapper*)keychainItem
+- (void)dealloc
+{
+    RELEASE_TO_NIL(identifier);
+    RELEASE_TO_NIL(accessGroup);
+    RELEASE_TO_NIL(accessibilityMode);
+    RELEASE_TO_NIL(accessControlMode);
+    
+    [super dealloc];
+}
+
+- (APSKeychainWrapper*)keychainItem
 {
     if (!keychainItem) {
-        keychainItem = [[[KeychainItemWrapper alloc] initWithIdentifier:identifier
+        keychainItem = [[[APSKeychainWrapper alloc] initWithIdentifier:identifier
+                                                               service:@"ti.touchid"
                                                             accessGroup:accessGroup
-                                                      accessibilityMode:(__bridge CFStringRef)accessibilityMode
+                                                      accessibilityMode:(CFStringRef)accessibilityMode
                                                       accessControlMode:[self formattedAccessControlFlags]] retain];
+        
+        [keychainItem setDelegate:self];
     }
     
     return keychainItem;
@@ -41,44 +54,66 @@
 - (void)save:(id)value
 {
     ENSURE_SINGLE_ARG(value, NSString);
-    
-    [[self keychainItem] setObject:value forKey:(id)kSecValueData withCompletionBlock:^(NSError *error) {
-        TiThreadPerformOnMainThread(^{
-            NSMutableDictionary *propertiesDict = [NSMutableDictionary dictionaryWithDictionary:@{@"success": NUMBOOL(error == nil)}];
-            
-            if (error) {
-                [propertiesDict setObject:error.localizedDescription forKey:@"error"];
-                [propertiesDict setObject:NUMINTEGER(error.code) forKey:@"code"];
-            }
-            
-            [self fireEvent:@"save" withObject:propertiesDict];
-        }, NO);
-    }];
+    [[self keychainItem] save:value];
 }
 
 - (void)read:(id)unused
-{    
-    NSString *value = [[[self keychainItem] objectForKey:(id)kSecValueData] retain];
-    NSMutableDictionary *propertiesDict = [NSMutableDictionary dictionaryWithObjectsAndKeys:NUMBOOL(value.length > 0), @"success", nil];
-    
-    if (value.length == 0) {
-        [propertiesDict setObject:@"Keychain item does not exist" forKey:@"error"];
-        [propertiesDict setObject:NUMINTEGER(-1) forKey:@"code"];
-    } else {
-        [propertiesDict setObject:value forKey:@"value"];
-    }
-    
-    [self fireEvent:@"read" withObject:propertiesDict];
-    RELEASE_TO_NIL(value);
+{
+    [[self keychainItem] read];
 }
 
 - (void)reset:(id)unused
 {
-    [[self keychainItem] resetKeychainItem];
-    [self fireEvent:@"reset"];
+    [[self keychainItem] reset];
+}
+
+- (id)exists:(id)unused
+{
+    return NUMBOOL([[self keychainItem] exists]);
+}
+
+#pragma mark APSKeychainWrapperDelegate
+
+- (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didSaveValueWithResult:(NSDictionary *)result
+{
+    [self fireEvent:@"save" withObject:result];
+}
+
+- (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didSaveValueWithError:(NSError *)error
+{
+    [self fireEvent:@"save" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
+}
+
+-(void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didReadValueWithResult:(NSDictionary *)result
+{
+    [self fireEvent:@"read" withObject:result];
+}
+
+- (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didReadValueWithError:(NSError *)error
+{
+    [self fireEvent:@"read" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
+}
+
+- (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didDeleteValueWithResult:(NSDictionary *)result
+{
+    [self fireEvent:@"reset" withObject:result];
+}
+
+- (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didDeleteValueWithError:(NSError *)error
+{
+    [self fireEvent:@"reset" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
 }
 
 #pragma mark Utilities
+
++ (NSDictionary*)errorDictionaryFromError:(NSError*)error
+{
+    return @{
+        @"success": @NO,
+        @"error": [error localizedDescription],
+        @"code": NUMINTEGER([error code])
+    };
+}
 
 - (long)formattedAccessControlFlags
 {
@@ -86,14 +121,14 @@
         if (!accessibilityMode) {
             NSLog(@"[ERROR] Ti.TouchID: When using `accessControlMode` you must also specify the `accessibilityMode` property.");
         } else if ([accessControlMode isKindOfClass:[NSNumber class]]) {
-            return kSecAccessControlTouchIDAny;
+            return accessControlMode;
         } else {
             NSLog(@"[WARN] Ti.TouchID: The property \"accessControlMode\" must either be a single constant or an array of multiple constants.");
             NSLog(@"[WARN] Ti.TouchID: Falling back to default `ACCESS_CONTROL_USER_PRESENCE`");
         }
     }
     
-    return kSecAccessControlUserPresence;
+    return kSecAccessControlTouchIDAny;
 }
 
 @end

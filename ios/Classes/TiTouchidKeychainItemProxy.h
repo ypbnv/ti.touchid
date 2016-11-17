@@ -5,11 +5,11 @@
  * Please see the LICENSE included with this distribution for details.
  */
 #import "TiProxy.h"
-#import "KeychainItemWrapper.h"
+#import "APSKeychainWrapper.h"
 
-@interface TiTouchidKeychainItemProxy : TiProxy {
+@interface TiTouchidKeychainItemProxy : TiProxy<APSKeychainWrapperDelegate> {
 @private
-    KeychainItemWrapper *keychainItem;
+    APSKeychainWrapper *keychainItem;
     
     NSString *identifier;
     NSString *accessGroup;
@@ -17,10 +17,27 @@
     NSNumber *accessControlMode;
 }
 
+/**
+ Saves a new value to the keychain. The value is identified by it's keychain
+ item identifier and an optional access-group.
+ */
 - (void)save:(id)value;
 
+/**
+ Reads an existing value from the keychain. The value is identified by it's
+ keychain item identifier and an optional access-group.
+ */
 - (void)read:(id)unused;
 
+/**
+ Deletes a value from the keychain. The value is identified by it's
+ keychain item identifier and an optional access-group.
+ */
 - (void)reset:(id)unused;
+
+/**
+ Checks if an item exists already.
+ */
+- (id)exists:(id)unused;
 
 @end
