@@ -15,6 +15,7 @@
     NSString *accessGroup;
     NSString *accessibilityMode;
     NSNumber *accessControlMode;
+    NSDictionary *options;
 }
 
 /**

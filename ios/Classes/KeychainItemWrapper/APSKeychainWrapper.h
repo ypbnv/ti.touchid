@@ -80,6 +80,7 @@ typedef NSString *APSErrorDomain;
     NSString *_identifier;
     NSString *_service;
     NSString *_accessGroup;
+    NSDictionary *_options;
     CFStringRef _accessibilityMode;
     SecAccessControlCreateFlags _accessControlMode;
 }
@@ -122,7 +123,8 @@ typedef NSString *APSErrorDomain;
                  service:(NSString*)service
              accessGroup:(NSString*)accessGroup
        accessibilityMode:(CFStringRef)accessibilityMode
-       accessControlMode:(long)accessControlMode;
+       accessControlMode:(SecAccessControlCreateFlags)accessControlMode
+                 options:(NSDictionary*)options;
 
 /**
  Checks if an item exists already.

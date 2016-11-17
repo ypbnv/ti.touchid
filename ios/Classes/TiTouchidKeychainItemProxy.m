@@ -20,6 +20,7 @@
         accessGroup = [[params objectForKey:@"accessGroup"] copy];
         accessibilityMode = [[params objectForKey:@"accessibilityMode"] copy];
         accessControlMode = [[params objectForKey:@"accessControlMode"] retain];
+        options = [[params objectForKey:@"options"] retain];
     }
     return self;
 }
@@ -30,6 +31,7 @@
     RELEASE_TO_NIL(accessGroup);
     RELEASE_TO_NIL(accessibilityMode);
     RELEASE_TO_NIL(accessControlMode);
+    RELEASE_TO_NIL(options);
     
     [super dealloc];
 }
@@ -37,11 +39,14 @@
 - (APSKeychainWrapper*)keychainItem
 {
     if (!keychainItem) {
+                
         keychainItem = [[[APSKeychainWrapper alloc] initWithIdentifier:identifier
                                                                service:@"ti.touchid"
                                                             accessGroup:accessGroup
                                                       accessibilityMode:(CFStringRef)accessibilityMode
-                                                      accessControlMode:[self formattedAccessControlFlags]] retain];
+                                                      accessControlMode:[self formattedAccessControlFlags]
+                                                                options:options
+                         ] retain];
         
         [keychainItem setDelegate:self];
     }
@@ -115,7 +120,7 @@
     };
 }
 
-- (long)formattedAccessControlFlags
+- (SecAccessControlCreateFlags)formattedAccessControlFlags
 {
     if (accessControlMode) {
         if (!accessibilityMode) {
