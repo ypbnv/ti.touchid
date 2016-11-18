@@ -31,6 +31,12 @@
 - (void)read:(id)unused;
 
 /**
+ Updates an existing value to the keychain. The value is identified by it's
+ keychain item identifier and an optional access-group.
+ */
+- (void)update:(id)value;
+
+/**
  Deletes a value from the keychain. The value is identified by it's
  keychain item identifier and an optional access-group.
  */
@@ -38,7 +44,9 @@
 
 /**
  Checks if an item exists already.
+ 
+ @param value The callback to be invoked after the existence is determined.
  */
-- (id)exists:(id)unused;
+- (void)fetchExistence:(id)value;
 
 @end

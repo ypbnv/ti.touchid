@@ -67,46 +67,88 @@
     [[self keychainItem] read];
 }
 
+- (void)update:(id)value
+{
+    ENSURE_SINGLE_ARG(value, NSString);
+    [[self keychainItem] update:value];
+}
+
 - (void)reset:(id)unused
 {
     [[self keychainItem] reset];
 }
 
-- (id)exists:(id)unused
+- (void)fetchExistence:(id)value
 {
-    return NUMBOOL([[self keychainItem] exists]);
+    ENSURE_SINGLE_ARG(value, KrollCallback);
+    
+    [[self keychainItem] exists:^(BOOL result) {
+        TiThreadPerformOnMainThread(^{
+            NSDictionary * propertiesDict = @{@"exists": NUMBOOL(result)};
+            NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
+            
+            [value call:invocationArray thisObject:self];
+            [invocationArray release];
+        }, YES);
+    }];
 }
 
 #pragma mark APSKeychainWrapperDelegate
 
 - (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didSaveValueWithResult:(NSDictionary *)result
 {
-    [self fireEvent:@"save" withObject:result];
+    if ([self _hasListeners:@"save"]) {
+        [self fireEvent:@"save" withObject:result];
+    }
 }
 
 - (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didSaveValueWithError:(NSError *)error
 {
-    [self fireEvent:@"save" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
+    if ([self _hasListeners:@"save"]) {
+        [self fireEvent:@"save" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
+    }
 }
 
 -(void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didReadValueWithResult:(NSDictionary *)result
 {
-    [self fireEvent:@"read" withObject:result];
+    if ([self _hasListeners:@"read"]) {
+        [self fireEvent:@"read" withObject:result];
+    }
 }
 
 - (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didReadValueWithError:(NSError *)error
 {
-    [self fireEvent:@"read" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
+    if ([self _hasListeners:@"read"]) {
+        [self fireEvent:@"read" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
+    }
+}
+
+- (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didUpdateValueWithError:(NSError *)error
+{
+    if ([self _hasListeners:@"update"]) {
+        [self fireEvent:@"update" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
+    }
 }
 
 - (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didDeleteValueWithResult:(NSDictionary *)result
 {
-    [self fireEvent:@"reset" withObject:result];
+    if ([self _hasListeners:@"reset"]) {
+        [self fireEvent:@"reset" withObject:result];
+    }
 }
 
 - (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didDeleteValueWithError:(NSError *)error
 {
-    [self fireEvent:@"reset" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
+    if ([self _hasListeners:@"reset"]) {
+        [self fireEvent:@"reset" withObject:[TiTouchidKeychainItemProxy errorDictionaryFromError:error]];
+    }
+}
+
+- (void)APSKeychainWrapper:(APSKeychainWrapper *)keychainWrapper didUpdateValueWithResult:(NSDictionary *)result
+{
+    if ([self _hasListeners:@"update"]) {
+        [self fireEvent:@"update" withObject:result];
+    }
 }
 
 #pragma mark Utilities
