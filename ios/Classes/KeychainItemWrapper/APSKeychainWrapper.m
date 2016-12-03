@@ -1,6 +1,6 @@
 /**
  * APSKeychainWrapper
- * Copyright (c) 2009-2016 by Appcelerator, Inc. All Rights Reserved.
+ * Copyright (c) 2016 by Axway. All Rights Reserved.
  * Licensed under the terms of the Apache Public License
  * Please see the LICENSE included with this distribution for details.
  */
@@ -76,9 +76,9 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
         [baseAttributes removeObjectForKey:(id)kSecValueData];
 
         if (status == noErr) {
-            [[self delegate] APSKeychainWrapper:self didSaveValueWithResult:@{@"success": @YES}];
+            [[self delegate] APSKeychainWrapper:self didSaveValueWithResult:@{@"success": @YES, @"identifier": _identifier}];
         } else {
-            [[self delegate] APSKeychainWrapper:self didSaveValueWithError:[APSKeychainWrapper errorFromStatus:status]];
+            [[self delegate] APSKeychainWrapper:self didSaveValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:_identifier]];
         }
     });
 }
@@ -100,10 +100,11 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
         if (status == noErr) {
             [[self delegate] APSKeychainWrapper:self didReadValueWithResult:@{
                 @"success": @YES,
+                @"identifier": _identifier,
                 @"value": [[NSString alloc] initWithData:(__bridge NSData*)keychainData encoding:NSUTF8StringEncoding]
             }];
         } else {
-            [[self delegate] APSKeychainWrapper:self didReadValueWithError:[APSKeychainWrapper errorFromStatus:status]];
+            [[self delegate] APSKeychainWrapper:self didReadValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:_identifier]];
         }
     });
 }
@@ -114,9 +115,9 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
         OSStatus status = SecItemUpdate((__bridge CFDictionaryRef)baseAttributes, (__bridge CFDictionaryRef)@{(id)kSecValueData: [value dataUsingEncoding:NSUTF8StringEncoding]});
                 
         if (status == noErr) {
-            [[self delegate] APSKeychainWrapper:self didUpdateValueWithResult:@{@"success": @YES}];
+            [[self delegate] APSKeychainWrapper:self didUpdateValueWithResult:@{@"success": @YES, @"identifier": _identifier}];
         } else {
-            [[self delegate] APSKeychainWrapper:self didUpdateValueWithError:[APSKeychainWrapper errorFromStatus:status]];
+            [[self delegate] APSKeychainWrapper:self didUpdateValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:_identifier]];
         }
     });
 }
@@ -127,16 +128,16 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
         OSStatus status = SecItemDelete((CFDictionaryRef)baseAttributes);
 
         if (status == noErr) {
-            [[self delegate] APSKeychainWrapper:self didDeleteValueWithResult:@{@"success": @YES}];
+            [[self delegate] APSKeychainWrapper:self didDeleteValueWithResult:@{@"success": @YES, @"identifier": _identifier}];
         } else {
-            [[self delegate] APSKeychainWrapper:self didDeleteValueWithError:[APSKeychainWrapper errorFromStatus:status]];
+            [[self delegate] APSKeychainWrapper:self didDeleteValueWithError:[APSKeychainWrapper errorFromStatus:status andIdentifier:_identifier]];
         }
     });
 }
 
 #pragma mark Utilities
 
-+ (NSError*)errorFromStatus:(OSStatus)status
++ (NSError*)errorFromStatus:(OSStatus)status andIdentifier:( NSString* _Nullable)identifier
 {
     NSString *message = [NSString stringWithFormat:@"%i", (int)status];
     NSString *suggestion = [NSString stringWithFormat:@"See https://www.osstatus.com/search/results?platform=all&framework=all&search=-%i for more information", (int)status];
@@ -172,7 +173,8 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
                                code:(int)status
                            userInfo:@{
                                       NSLocalizedDescriptionKey: NSLocalizedString(message, nil),
-                                      NSLocalizedRecoverySuggestionErrorKey: NSLocalizedString(suggestion, nil)
+                                      NSLocalizedRecoverySuggestionErrorKey: NSLocalizedString(suggestion, nil),
+                                      @"identifier": identifier
                                 }];
 }
 

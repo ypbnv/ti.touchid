@@ -175,7 +175,7 @@
         }
     }
     
-    return kSecAccessControlTouchIDAny;
+    return kSecAccessControlUserPresence;
 }
 
 @end
