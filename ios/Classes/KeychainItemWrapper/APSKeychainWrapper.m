@@ -43,27 +43,32 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
     return self;
 }
 
-- (void)exists:(void (^)(BOOL result))completionBlock;
+- (void)exists:(void (^)(BOOL exists, NSError *error))completionBlock;
 {
-    __block BOOL exists = NO;
-    [baseAttributes setObject:(id)kSecMatchLimitOne forKey:(id)kSecMatchLimit];
-    
-    // Use a semaphore to wait for the asyncronous user-feedback
-    dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+    NSDictionary *query = @{
+        (id)kSecClass: [baseAttributes objectForKey:(id)kSecClass],
+        (id)kSecAttrService: [baseAttributes objectForKey:(id)kSecAttrService],
+        (id)kSecAttrAccount: [baseAttributes objectForKey:(id)kSecAttrAccount],
+        (id)kSecUseAuthenticationUI: (id)kSecUseAuthenticationUIFail // Supress TouchID dialog for existence check
+    };
     
     // Dispatch into our priority queue
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        OSStatus status = SecItemCopyMatching((CFDictionaryRef)(baseAttributes), NULL);
-        exists = (status == noErr);
-        dispatch_semaphore_signal(sem);
+        CFTypeRef dataTypeRef = NULL;
+        OSStatus status = SecItemCopyMatching((CFDictionaryRef)(query), &dataTypeRef);
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            if (status == errSecInteractionNotAllowed) {
+                completionBlock(YES, nil);
+            } else if (status == errSecItemNotFound) {
+                completionBlock(NO, nil);
+            } else {
+                completionBlock(NO, [NSError errorWithDomain:APSKeychainWrapperErrorDomain
+                                                         code:(int)status
+                                                     userInfo:@{NSLocalizedDescriptionKey: NSLocalizedString(@"Keychain item existence could not be determined. Returning `false` in this case.", nil)}]);
+            }
+        });
     });
-    
-    // Double-check: If this returns a non-zero value, the user never reacted to
-    // the authentication (e.g. Touch ID), so we should return __NO__
-    long exitCode = dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
-    
-    [baseAttributes removeObjectForKey:(id)kSecMatchLimit];
-    completionBlock(exists && exitCode == 0);
 }
 
 - (void)save:(NSString*)value

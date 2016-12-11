@@ -82,9 +82,14 @@
 {
     ENSURE_SINGLE_ARG(value, KrollCallback);
     
-    [[self keychainItem] exists:^(BOOL result) {
+    [[self keychainItem] exists:^(BOOL result, NSError *error) {
         TiThreadPerformOnMainThread(^{
-            NSDictionary * propertiesDict = @{@"exists": NUMBOOL(result)};
+            NSMutableDictionary *propertiesDict = [NSMutableDictionary dictionaryWithDictionary:@{@"exists": NUMBOOL(result)}];
+            
+            if (error) {
+                [propertiesDict setObject:[error localizedDescription] forKey:@"error"];
+            }
+            
             NSArray * invocationArray = [[NSArray alloc] initWithObjects:&propertiesDict count:1];
             
             [value call:invocationArray thisObject:self];

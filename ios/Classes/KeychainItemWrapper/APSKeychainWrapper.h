@@ -147,7 +147,7 @@ typedef NSString *APSErrorDomain;
  
  @param completionBlock The block to be invoked when the existence has been determined.
  */
-- (void)exists:(void (^)(BOOL result))completionBlock;
+- (void)exists:(void (^)(BOOL exists, NSError *error))completionBlock;
 
 /**
  Saves a new value to the keychain. The value is identified by it's keychain
