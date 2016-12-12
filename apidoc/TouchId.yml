@@ -46,65 +46,10 @@ description: |
             }
         });
         
-    ### Keychain Integration (iOS-only)
-
-    Since 2.1.0, the module support basic and advanced keychain integrations to allow
-    the user to store sensitive information in the native iOS keychain.
+    ### Native Keychain Integration (iOS-only)
     
-    **Important**: For devices running iOS 10 and later, you now must include an 
-    entitlements file that enables Keychain Sharing Capabilities. To do so, create 
-    a /platform/ios/name.entitlements file (replace name with the name element in 
-    the tiapp.xml) with the following content:
-        
-        <?xml version="1.0" encoding="UTF-8"?>
-        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-        <plist version="1.0">
-        <dict>
-            <key>keychain-access-groups</key>
-            <array>
-                <!-- APP_ID same as the id value in the tiapp.xml file -->
-                <string>$(AppIdentifierPrefix)APP_ID</string>
-            </array>
-        </dict>
-        </plist>
-    
-    The following example demonstrates the basic usage to save, read and delete 
-    values with the native iOS keychain:
-        
-        // Write to keychain
-        TouchID.saveValueToKeychain({
-            identifier: "password",
-            value: "s3cr3t_p4$$w0rd",
-            callback: function(e) {
-                Ti.API.info(e);
-            }
-        });
-        
-        // Read from keychain
-        TouchID.readValueFromKeychain({
-            identifier: "password",
-            callback: function(e) {
-                Ti.API.info(e);
-            }
-        });
-        
-        // Delete from keychain
-        TouchID.deleteValueFromKeychain({
-            identifier: "password"
-        });
-    
-    For advanced security options, you can specify accessibility mode to the keychain 
-    that will be applied when writing items to the keychain, for example:
-        
-        TouchID.saveValueToKeychain({
-            identifier: "password",
-            accessibilityMode: TouchId.ACCESSIBLE_AFTER_FIRST_UNLOCK,
-            accessControlMode: TouchId.ACCESS_CONTROL_DEVICE_PASSCODE,
-            value: "s3cr3t_p4$$w0rd",
-            callback: function(e) {
-                Ti.API.info(e);
-            }
-        });
+    For more infos regarding the keychain integration, check the <Modules.TiTouchId.KeychainItem> 
+    documentation.
 
     ### Sample Application
 
@@ -137,7 +82,7 @@ methods:
         used for policy evaluation and an attempt to do so will fail with <Modules.TouchId.ERROR_INVALID_CONTEXT>.
     
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
 
   - name: deviceCanAuthenticate
     summary: Checks to see if device is configured for Touch ID authentication.
@@ -156,43 +101,6 @@ methods:
     summary: Determines if the current device supports Touch ID.
     returns:
         type: Boolean
-
-  - name: saveValueToKeychain
-    summary: Saves a new value to the iOS keychain
-    description: |
-        Please ensure that the `identifier` does not contain any alphanumeric
-        characters. The system keychain might reject the value in that case.
-    parameters:
-      - name: params
-        summary: Dictionary of arguments passed to the keychain.
-        type: KeychainItemType
-    platforms: [iphone, ipad]
-    since: "2.1.0"
-    
-  - name: readValueFromKeychain
-    summary: Reads an existing value to the iOS keychain.
-    description: |
-        Please ensure that the `identifier` does not contain any alphanumeric
-        characters. The system keychain might abort the access in that case.
-    parameters:
-      - name: params
-        summary: Dictionary of arguments passed to the keychain.
-        type: KeychainItemType
-    platforms: [iphone, ipad]
-    since: "2.1.0"
-    
-  - name: deleteValueFromKeychain
-    summary: Deletes an existing value from the iOS keychain.
-    description: |
-        Please ensure that the `identifier` does not contain any alphanumeric
-        characters. The system keychain might abort the deletion in that case.
-    parameters:
-      - name: params
-        summary: Dictionary of arguments passed to the keychain.
-        type: KeychainItemType
-    platforms: [iphone, ipad]
-    since: "2.1.0"
-
 properties:
 
   - name: ERROR_AUTHENTICATION_FAILED
@@ -267,7 +175,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESSIBLE_AFTER_FIRST_UNLOCK
     summary: |
@@ -278,7 +186,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESSIBLE_ALWAYS
     summary: |
@@ -288,7 +196,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY
     summary: |
@@ -303,7 +211,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESSIBLE_WHEN_UNLOCKED_THIS_DEVICE_ONLY
     summary: |
@@ -315,7 +223,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESSIBLE_AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY
     summary: |
@@ -327,7 +235,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY
     summary: |
@@ -338,7 +246,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESS_CONTROL_USER_PRESENCE
     summary: |
@@ -348,7 +256,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESS_CONTROL_TOUCH_ID_ANY
     summary: |
@@ -358,7 +266,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESS_CONTROL_TOUCH_ID_CURRENT_SET
     summary: |
@@ -368,14 +276,14 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESS_CONTROL_DEVICE_PASSCODE
     summary: Constraint - Device passcode.
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESS_CONTROL_OR
     summary: |
@@ -384,7 +292,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESS_CONTROL_AND
     summary: |
@@ -393,14 +301,14 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESS_CONTROL_PRIVATE_KEY_USAGE
     summary: Create access control for private key operations (i.e. sign operation).
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
     
   - name: ACCESS_CONTROL_APPLICATION_PASSWORD
     summary: |
@@ -409,7 +317,7 @@ properties:
     type: Number
     permission: read-only
     platforms: [iphone, ipad]
-    since: "2.1.0"
+    since: "6.1.0"
 
 ---
 name: TouchIdAuthenticationType
@@ -444,7 +352,7 @@ properties:
         The maximum supported interval is 5 minutes and setting the value beyond 
         5 minutes does not increase the accepted interval.    
     type: Number
-    since: "2.1.0"
+    since: "6.1.0"
     osver: {ios: {min: "9.0"}}
     
   - name: fallbackTitle
@@ -453,7 +361,7 @@ properties:
         "Enter Password" is used when this property is left nil. If set to empty 
         string, the button will be hidden.
     type: String
-    since: "2.1.0"
+    since: "6.1.0"
     osver: {ios: {min: "10.0"}}
     
   - name: cancelTitle
@@ -461,7 +369,7 @@ properties:
         Allows cancel button title customization. A default localized title "Cancel" 
         is used when this property is not defined or is set to empty string.
     type: String
-    since: "2.1.0"
+    since: "6.1.0"
     osver: {ios: {min: "10.0"}}
   
   - name: callback
@@ -478,7 +386,6 @@ properties:
 ---
 name: DeviceCanAuthenticateResult
 platforms: [android, iphone, ipad]
-since: "1.0.1"
 summary: Dictionary containing results for <Modules.TouchId.deviceCanAuthenticate>.
 properties:
   - name: canAuthenticate 
@@ -492,51 +399,3 @@ properties:
   - name: code
     summary: iOS only, Module `ERROR_*` constant indicating the reason for the failure if any.
     type: Number
-
----
-name: KeychainItemType
-platforms: [iphone, ipad]
-since: "2.1.0"
-summary: | 
-    Dictionary passed to <Modules.TouchId.saveValueToKeychain>,
-    <Modules.TouchId.readValueFromKeychain> or <Modules.TouchId.deleteValueFromKeychain>.
-properties:
-    - name: identifier
-      optional: false
-      summary: |
-          Required identifier to create or receive a keychain item. The identifier 
-          cannot contain alphanumeric characters or it might be rejected by the keychain.
-      type: String
-    
-    - name: callback
-      optional: false
-      summary: |
-          Required callback function that is executed after the the keychain item 
-          is saved/received or rejected by the system keychain.
-      type: Callback
-      
-    - name: accessGroup
-      summary: |
-          Optional identifier used to define the access group the keychain item
-          should be valid. This can be used to share a keychain item across two
-          or more apps that use the same organization group identifier.
-          More information about keychain access groups can be found in the
-          [official iOS documentation](https://developer.apple.com/reference/security/ksecattraccessgroup).
-      type: String
-
-    - name: accessibilityMode  
-      summary: |
-          Optional constant used for determining when a keychain item should be 
-          readable. Use this property with caution to enable advanced access control.
-          More information about this property and it's values can be found in the 
-          [official iOS documentation](https://developer.apple.com/reference/security/1658642-keychain_services/1663541-keychain_item_accessibility_cons).
-      type: Number
-      constants: Modules.TouchId.ACCESSIBLE_*
-      
-    - name: accessControlMode
-      summary: |
-          Optional constants used to determine the access control with the specified 
-          protection type and flags. The constants can be concatenated by using the
-          Bit OR operator, e.g. `optionA | optionB | optionC`.
-      type: Number
-      constants: Modules.TouchId.ACCESS_CONTROL_*

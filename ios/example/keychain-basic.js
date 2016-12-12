@@ -5,77 +5,98 @@
  * Please see the LICENSE included with this distribution for details.
  *
  */
-var TouchID = require("ti.touchid");
+var TouchID = require('ti.touchid');
 
 // -- IMPORTANT --
 // This prefix is required for device and production builds
 // and will be ignored for simulator builds. It is the Team-ID 
 // of your provisioning profile.
-var appIdentifierPrefix = "<YOU-APP-IDENTIFIER-PREFIX>.";
+var appIdentifierPrefix = '<YOU-APP-IDENTIFIER-PREFIX>.';
 
 var win = Ti.UI.createWindow({
-    backgroundColor: "#fff",
-    layout: "vertical"
+    backgroundColor: '#fff',
+    layout: 'vertical'
 });
 
 var btnSave = Ti.UI.createButton({
-    title: "Save password to keychain!",
+    title: 'Save password to keychain!',
     top: 40
 });
 
 var keychainItem = TouchID.createKeychainItem({
-    identifier: "password",
-    accessGroup: appIdentifierPrefix + "com.appc.touchidtest"
+    identifier: 'password',
+    accessGroup: appIdentifierPrefix + 'com.appc.touchidtest'
 });
 
-keychainItem.addEventListener("save", function(e) {
+keychainItem.addEventListener('save', function(e) {
     if (!e.success) {
-        Ti.API.error("Error: " + e.error);
+        Ti.API.error('Error: ' + e.error);
         return;
     }
     
-    Ti.API.info("Successfully saved!");
+    Ti.API.info('Successfully saved!');
     Ti.API.info(e);
 });
 
-keychainItem.addEventListener("read", function(e) {
+keychainItem.addEventListener('read', function(e) {
     if (!e.success) {
-        Ti.API.error("Error: " + e.error);
+        Ti.API.error('Error: ' + e.error);
         return;
     }
     
-    Ti.API.info("Successfully read!");
+    Ti.API.info('Successfully read!');
     Ti.API.info(e);
 });
 
-keychainItem.addEventListener("reset", function() {
-    Ti.API.info("Successfully resetted!");
+keychainItem.addEventListener('reset', function() {
+    Ti.API.info('Successfully resetted!');
 });
 
-btnSave.addEventListener("click", function() {
-    keychainItem.save("s3cr3t_p4$$w0rd");
+btnSave.addEventListener('click', function() {
+    keychainItem.save('s3cr3t_p4$$w0rd');
+});
+
+var btnExists = Ti.UI.createButton({
+    title: "Exists?",
+    top: 40
+});
+
+btnExists.addEventListener("click", function() {
+    keychainItem.fetchExistence(function(e) {
+        alert("Exists? " + e.exists);
+    });
 });
 
 var btnRead = Ti.UI.createButton({
-    title: "Read password from keychain",
+    title: 'Read password from keychain',
     top: 40
 });
 
-btnRead.addEventListener("click", function() {
+btnRead.addEventListener('click', function() {
     keychainItem.read();
 });
 
-
-var btnDelete = Ti.UI.createButton({
-    title: "Delete password from keychain",
+var btnUpdate = Ti.UI.createButton({
+    title: 'Update password to keychain',
     top: 40
 });
 
-btnDelete.addEventListener("click", function() {
+btnUpdate.addEventListener('click', function() {
+    keychainItem.update('my_new_password');
+});
+
+var btnDelete = Ti.UI.createButton({
+    title: 'Delete password from keychain',
+    top: 40
+});
+
+btnDelete.addEventListener('click', function() {
     keychainItem.reset();
 });
 
+win.add(exists);
 win.add(btnSave);
 win.add(btnRead);
+win.add(btnUpdate);
 win.add(btnDelete);
 win.open();

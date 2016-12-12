@@ -58,7 +58,7 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
         OSStatus status = SecItemCopyMatching((CFDictionaryRef)(query), &dataTypeRef);
         
         dispatch_async(dispatch_get_main_queue(), ^{
-            if (status == errSecInteractionNotAllowed) {
+            if (status == errSecInteractionNotAllowed || status == noErr) {
                 completionBlock(YES, nil);
             } else if (status == errSecItemNotFound) {
                 completionBlock(NO, nil);
