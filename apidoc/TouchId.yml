@@ -81,7 +81,7 @@ methods:
         fail with <Modules.TouchId.ERROR_APP_CANCELLED>. After the context has been invalidated, it can not be
         used for policy evaluation and an attempt to do so will fail with <Modules.TouchId.ERROR_INVALID_CONTEXT>.
     
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
 
   - name: deviceCanAuthenticate
