@@ -57,6 +57,20 @@ description: |
     `<TITANIUM_SDK_HOME>/modules/iphone/ti.touchid/<VERSION>/example/` folder.
 
 methods:
+  - name: authenticationPolicy
+    summary: Sets the global authentication policy to use in this Touch ID context.
+    description: |
+        You should set this property before checking the availability or 
+        starting the authentication. By default, `AUTHENTICATION_POLICY_BIOMETRICS`
+        will be used to authenticate using the Touch ID sensor only. Using the
+        `AUTHENTICATION_POLICY_PASSCODE` constant will still try to authenticate
+        with Touch ID first and use the passcode as the fallback.
+    platforms: [iphone, ipad]
+    since: "6.1.0"
+    type: Number
+    constants: [Modules.TouchId.AUTHENTICATION_POLICY_*]
+    default: Modules.TouchId.AUTHENTICATION_POLICY_BIOMETRICS
+    
   - name: authenticate
     summary: Initiates the Touch ID authentication process.
     description: |
@@ -102,6 +116,47 @@ methods:
     returns:
         type: Boolean
 properties:
+    
+  - name: AUTHENTICATION_POLICY_PASSCODE
+    summary: Device owner was authenticated by Touch ID or device passcode.
+    description: |
+        Touch ID or passcode authentication is required. If Touch ID is available, 
+        enrolled and not locked out, user is asked for it first, otherwise they are 
+        asked to enter device passcode. If passcode is not enabled, policy evaluation 
+        will fail.
+
+        Touch ID authentication dialog behaves similarly as the one used by 
+        `AUTHENTICATION_POLICY_BIOMETRICS`. However, instead of "Enter Password" 
+        button there is "Enter Passcode" button which, when tapped, switches the 
+        authentication method and allows users to enter device passcode.
+
+        Passcode authentication will get locked after 6 unsuccessful attempts with 
+        progressively increased backoff delay.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "6.1.0"
+    
+  - name: AUTHENTICATION_POLICY_BIOMETRICS
+    summary: Device owner was authenticated using a biometric method (Touch ID).
+    description: |
+        Touch ID authentication is required. If Touch ID is not available or not 
+        enrolled, policy evaluation will fail. If Touch ID is locked out, passcode 
+        is required as the first step to unlock the Touch ID.
+
+        Touch ID authentication dialog contains a cancel button with default title 
+        "Cancel" which can be customized using `cancelTitle` property and a fallback 
+        button with default title "Enter Password" which can be customized using 
+        `fallbackTitle` property. Fallback button is initially hidden and shows up 
+        after first unsuccessful Touch ID attempt. Tapping cancel button or fallback 
+        button causes evaluatePolicy call to fail, returning a distinct error code.
+
+        Biometric authentication will get locked after 5 unsuccessful attempts. 
+        After that, users have to unlock it by entering passcode.
+    type: Number
+    permission: read-only
+    platforms: [iphone, ipad]
+    since: "6.1.0"
 
   - name: ERROR_AUTHENTICATION_FAILED
     summary: Constant indicating that the authentication was not successful.
@@ -115,7 +170,6 @@ properties:
     permission: read-only
     platforms: [iphone, ipad]
     
-
   - name: ERROR_TOUCH_ID_NOT_AVAILABLE
     summary: Constant indicating that Touch ID is not available on the device.
     type: Number

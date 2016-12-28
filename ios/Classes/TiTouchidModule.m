@@ -37,12 +37,27 @@
 {
     if (!authContext) {
         authContext = [LAContext new];
+        
+        if (!authPolicy) {
+            authPolicy = LAPolicyDeviceOwnerAuthenticationWithBiometrics;
+        }
     }
     
     return authContext;
 }
 
 #pragma mark Public API
+
+- (void)setAuthenticationPolicy:(id)value
+{
+    ENSURE_TYPE(value, NSNumber);
+    authPolicy = [TiUtils intValue:value def:LAPolicyDeviceOwnerAuthenticationWithBiometrics];
+}
+
+- (id)authenticationPolicy
+{
+    return NUMINTEGER(authPolicy ?: LAPolicyDeviceOwnerAuthenticationWithBiometrics);
+}
 
 - (NSNumber*)isSupported:(id)unused
 {
@@ -54,7 +69,7 @@
     __block BOOL isSupported = NO;
     
     TiThreadPerformOnMainThread(^{
-        isSupported = [context canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:nil];
+        isSupported = [context canEvaluatePolicy:authPolicy error:nil];
     },YES);
     
     return NUMBOOL(isSupported);
@@ -110,7 +125,7 @@
     // iOS 9: Expose failure behavior
     if ([TiUtils isIOS9OrGreater]) {
         if (allowableReuseDuration) {
-            [authContext setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
+            [[self authContext] setTouchIDAuthenticationAllowableReuseDuration:[TiUtils doubleValue:allowableReuseDuration]];
         }
     }
 
@@ -126,14 +141,14 @@
         }
     }
 #endif
-
+    
     // Display the dialog if the security policy allows it (= device has Touch ID enabled)
-    if ([[self authContext] canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError]) {
+    if ([[self authContext] canEvaluatePolicy:authPolicy error:&authError]) {
         // Make sure this runs on the main thread, for two reasons:
         // 1. This will show an alert dialog, which is a UI component
         // 2. The callback function (KrollCallback) needs to run on main thread
         TiThreadPerformOnMainThread(^{
-            [[self authContext] evaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics localizedReason:reason reply:^(BOOL success, NSError *error) {
+            [[self authContext] evaluatePolicy:authPolicy localizedReason:reason reply:^(BOOL success, NSError *error) {
                 NSMutableDictionary *event = [NSMutableDictionary dictionary];
                 if(error != nil) {
                     [event setValue:[error localizedDescription] forKey:@"error"];
@@ -188,7 +203,7 @@
     }
     
     NSError *authError = nil;
-    BOOL canAuthenticate = [[self authContext] canEvaluatePolicy:LAPolicyDeviceOwnerAuthenticationWithBiometrics error:&authError];
+    BOOL canAuthenticate = [[self authContext] canEvaluatePolicy:authPolicy error:&authError];
     NSMutableDictionary *result = [NSMutableDictionary dictionaryWithDictionary:@{
         @"canAuthenticate": NUMBOOL(canAuthenticate)
     }];
@@ -299,5 +314,8 @@ MAKE_SYSTEM_PROP(ACCESS_CONTROL_OR, 16384); // kSecAccessControlOr
 MAKE_SYSTEM_PROP(ACCESS_CONTROL_AND, 32768); // kSecAccessControlAnd
 MAKE_SYSTEM_PROP(ACCESS_CONTROL_PRIVATE_KEY_USAGE, 1073741824); // kSecAccessControlPrivateKeyUsage
 MAKE_SYSTEM_PROP(ACCESS_CONTROL_APPLICATION_PASSWORD, 2147483648); // kSecAccessControlApplicationPassword
+
+MAKE_SYSTEM_PROP(AUTHENTICATION_POLICY_BIOMETRICS, LAPolicyDeviceOwnerAuthenticationWithBiometrics);
+MAKE_SYSTEM_PROP(AUTHENTICATION_POLICY_PASSCODE, LAPolicyDeviceOwnerAuthentication);
 
 @end

@@ -10,6 +10,7 @@
 
 @interface TiTouchidModule : TiModule {
     LAContext *authContext;
+    LAPolicy authPolicy;
 }
 
 /**

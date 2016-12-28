@@ -13,6 +13,11 @@ var btn = Ti.UI.createButton({
 	title: 'authenticate'
 });
 
+// You can set the authentication policy on iOS (biometric or passcode)
+if (Ti.Platform.name === 'iPhone OS') {
+	TiTouchId.setAuthenticationPolicy(TiTouchId.AUTHENTICATION_POLICY_BIOMETRICS); // or: AUTHENTICATION_POLICY_PASSCODE
+}
+
 win.add(btn);
 win.open();
 
