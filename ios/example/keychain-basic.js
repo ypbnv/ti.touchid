@@ -11,7 +11,7 @@ var TouchID = require('ti.touchid');
 // This prefix is required for device and production builds
 // and will be ignored for simulator builds. It is the Team-ID 
 // of your provisioning profile.
-var appIdentifierPrefix = '<YOU-APP-IDENTIFIER-PREFIX>.';
+var appIdentifierPrefix = '<YOU-APP-IDENTIFIER-PREFIX>';
 
 var win = Ti.UI.createWindow({
     backgroundColor: '#fff',
@@ -25,7 +25,7 @@ var btnSave = Ti.UI.createButton({
 
 var keychainItem = TouchID.createKeychainItem({
     identifier: 'password',
-    accessGroup: appIdentifierPrefix + 'com.appc.touchidtest'
+    accessGroup: appIdentifierPrefix + '.' + Ti.App.getId()
 });
 
 keychainItem.addEventListener('save', function(e) {
@@ -94,9 +94,10 @@ btnDelete.addEventListener('click', function() {
     keychainItem.reset();
 });
 
-win.add(exists);
+win.add(btnExists);
 win.add(btnSave);
 win.add(btnRead);
 win.add(btnUpdate);
 win.add(btnDelete);
+
 win.open();

@@ -15,11 +15,11 @@ var win = Ti.UI.createWindow({
 // This prefix is required for device and production builds
 // and will be ignored for simulator builds. It is the Team-ID 
 // of your provisioning profile.
-var appIdentifierPrefix = '<YOU-APP-IDENTIFIER-PREFIX>.';
+var appIdentifierPrefix = '<YOU-APP-IDENTIFIER-PREFIX>';
 
 var keychainItem = TouchID.createKeychainItem({
     identifier: 'mypassword',
-    accessGroup: appIdentifierPrefix + 'com.appc.touchidtest',
+    accessGroup: appIdentifierPrefix + '.' + Ti.App.getId(),
     accessibilityMode: TouchID.ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY,
     accessControlMode: TouchID.ACCESS_CONTROL_TOUCH_ID_ANY,
     // Pass more native options to the keychain. Since there are hundrets of them,
@@ -103,4 +103,5 @@ win.add(btnExists);
 win.add(btnSave);
 win.add(btnRead);
 win.add(btnDelete);
+
 win.open();
