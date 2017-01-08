@@ -94,7 +94,6 @@ methods:
         type: Boolean
 
 properties:
-
   - name: ERROR_AUTHENTICATION_FAILED
     summary: Constant indicating that the authentication was not successful.
     type: Number
@@ -107,7 +106,6 @@ properties:
     permission: read-only
     platforms: [iphone, ipad]
     
-
   - name: ERROR_TOUCH_ID_NOT_AVAILABLE
     summary: Constant indicating that Touch ID is not available on the device.
     type: Number
@@ -161,7 +159,7 @@ properties:
 ---
 name: DeviceCanAuthenticateResult
 platforms: [android, iphone, ipad]
-since: "1.0.1"
+since: {iphone: "3.4.0", ipad: "3.4.0", android: "5.4.0"}
 summary: Dictionary containing results for <ti.touchid.deviceCanAuthenticate>.
 properties:
   - name: canAuthenticate 
