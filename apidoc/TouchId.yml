@@ -116,8 +116,7 @@ methods:
     summary: Determines if the current device supports Touch ID.
     returns:
         type: Boolean
-properties:
-    
+properties:    
   - name: AUTHENTICATION_POLICY_PASSCODE
     summary: Device owner was authenticated by Touch ID or device passcode.
     description: |
@@ -442,6 +441,7 @@ properties:
 name: DeviceCanAuthenticateResult
 platforms: [android, iphone, ipad]
 summary: Dictionary containing results for <Modules.TouchId.deviceCanAuthenticate>.
+since: {iphone: "3.4.0", ipad: "3.4.0", android: "5.4.0"}
 properties:
   - name: canAuthenticate 
     summary: Set to true if device is configured for touch ID authentication.
