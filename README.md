@@ -20,6 +20,14 @@ Example
 ---------------
 Please see the full-featured example in `iphone/example/app.js` and `android/example/app.js`.
 
+Build from Source
+---------------
+- iOS: `appc ti build -p ios --build-only` from the `ios` directory
+- Android: `appc ti build -p android --build-only` from the `android` directory
+
+> Note: Please do not use the (deprecated) `build.py` for iOS and `ant` for Android anymore.
+> Those are unified in the above appc-cli these days.
+
 Author
 ---------------
 Appcelerator
