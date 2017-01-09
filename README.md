@@ -1,4 +1,4 @@
-# 🖐 Ti.TouchID
+# 🖐 Ti.TouchID [![Build Status](https://travis-ci.org/appcelerator-modules/ti.touchid.svg?branch=master)](https://travis-ci.org/appcelerator-modules/ti.touchid)
 
 Summary
 ---------------
