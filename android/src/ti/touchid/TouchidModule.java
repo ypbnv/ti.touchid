@@ -87,4 +87,11 @@ public class TouchidModule extends KrollModule
 			mfingerprintHelper.stopListening();
 		}	
 	}
+
+	@Kroll.method
+	public void invalidate() {
+		if (mfingerprintHelper != null) {
+			mfingerprintHelper.stopListening();
+		}
+	}
 }

@@ -2,13 +2,13 @@
 # this is your module manifest and used by Titanium
 # during compilation, packaging, distribution, etc.
 #
-version: 1.2.2
+version: 2.1.0
 apiversion: 2
 architectures: armv7 arm64 i386 x86_64
 description: TouchId Module
-author: Pedro Enrique & CheeKiat Ng
+author: Pedro Enrique, Chee Kiat Ng & Hans Knoechel
 license: Apache License, Version 2.0
-copyright: Copyright (c) 2014 by Appcelerator, Inc.
+copyright: Copyright (c) 2014-2016 by Appcelerator, Inc.
 
 
 # these should not be edited
@@ -16,4 +16,4 @@ name: TouchID
 moduleid: ti.touchid
 guid: 0ee4118b-68f9-47c6-8c37-d68778ecb806
 platform: iphone
-minsdk: 3.4.1.GA
+minsdk: 5.5.1
