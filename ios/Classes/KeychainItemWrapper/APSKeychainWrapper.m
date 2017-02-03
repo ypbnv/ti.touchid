@@ -205,8 +205,7 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
         
         if (error == NULL || accessControl != NULL) {
             [baseAttributes setObject:(__bridge id)accessControl forKey:(id)kSecAttrAccessControl];
-            [baseAttributes setObject:(id)kSecUseAuthenticationUIAllow forKey:(id)kSecUseAuthenticationUI];
-            
+
             CFRelease(accessControl);
         } else {
             NSLog(@"Error: Could not create access control: %@", [(__bridge NSError*)error localizedDescription]);

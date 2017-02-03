@@ -180,7 +180,7 @@
         }
     }
     
-    return kSecAccessControlUserPresence;
+    return NULL;
 }
 
 @end
