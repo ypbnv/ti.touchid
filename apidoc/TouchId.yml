@@ -46,6 +46,12 @@ description: |
             }
         });
         
+    ### Lifetime Notes (iOS-only)
+    
+    The current context will, once evaluated, been used until it's instance gets released or invalidated.
+    You can you use the <Modules.TouchId.invalidate> method to force the user to be prompted everytime a
+    new authentication is triggered.
+        
     ### Native Keychain Integration (iOS-only)
     
     For more infos regarding the keychain integration, check the <Modules.TiTouchId.KeychainItem> 
