@@ -1,6 +1,8 @@
 # Change Log
 <pre>
-v2.1.1 Fix iOS keychain access default behavior [TIMOB-24368]
+v2.1.3 Fix iOS keychain access default behavior [TIMOB-24368]
+
+v2.1.2 Fix HTTP calls in success event [TIMOB-24489]
 
 v2.1.0 Align module version with Android, support iOS keychain access [TIMOB-20547]
 
