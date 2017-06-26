@@ -1,5 +1,10 @@
+/**
+ * Axway Appcelerator Titanium - ti.touchid
+ * Copyright (c) 2017 by Axway. All Rights Reserved.
+ * Licensed under the terms of the Apache Public License
+ * Please see the LICENSE included with this distribution for details.
+ */
 package ti.touchid;
-
 
 import android.app.Activity;
 import android.app.KeyguardManager;
@@ -10,21 +15,19 @@ import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.KeyProperties;
 import android.util.Base64;
-import android.widget.Toast;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.KrollObject;
 import org.appcelerator.titanium.TiApplication;
 
-import javax.crypto.*;
-import java.io.IOException;
-import java.security.*;
-import java.security.cert.CertificateException;
 import org.appcelerator.kroll.common.Log;
 
-/**
- * Created by hpham on 4/11/16.
- */
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+
 public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback {
 
 	protected KeyguardManager mKeyguardManager;
