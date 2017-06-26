@@ -6,6 +6,8 @@
  */
 package ti.touchid;
 
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import org.appcelerator.kroll.KrollFunction;
 import org.appcelerator.kroll.common.Log;
 import org.appcelerator.kroll.annotations.Kroll;
@@ -14,7 +16,6 @@ import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiApplication;
 
 import android.content.Context;
-import android.security.KeyPairGeneratorSpec;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -22,15 +23,15 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.math.BigInteger;
 import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.security.KeyStore;
-import java.util.Calendar;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
-import javax.security.auth.x500.X500Principal;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.IvParameterSpec;
 
 @Kroll.proxy(creatableInModule=TouchidModule.class)
 public class KeychainItemProxy extends KrollProxy {
@@ -44,8 +45,8 @@ public class KeychainItemProxy extends KrollProxy {
 	public static final String EVENT_RESET = "reset";
 
 	private KeyStore keyStore;
-	private KeyPair keyPair;
-	private String algorithm = "RSA/ECB/PKCS1Padding";
+	private SecretKey key;
+	private String algorithm = "AES/GCM/NoPadding";
 	private String identifier = "";
 	private String suffix = "_kc.dat";
 	private Context context = null;
@@ -70,10 +71,15 @@ public class KeychainItemProxy extends KrollProxy {
 		try {
 			// create encryption cipher
 			Cipher cipher = Cipher.getInstance(algorithm);
-			cipher.init(Cipher.ENCRYPT_MODE, keyPair.getPrivate());
+			cipher.init(Cipher.ENCRYPT_MODE, key);
 
 			// save encrypted data to private storage
 			FileOutputStream fos = context.openFileOutput(identifier + suffix, Context.MODE_PRIVATE);
+
+			// write IV
+			fos.write(cipher.getIV());
+
+			// write encrypted data
 			CipherOutputStream cos = new CipherOutputStream(new BufferedOutputStream(fos), cipher);
 			cos.write(value.getBytes());
 			cos.close();
@@ -94,13 +100,17 @@ public class KeychainItemProxy extends KrollProxy {
 		try {
 			// create decryption cipher
 			Cipher cipher = Cipher.getInstance(algorithm);
-			cipher.init(Cipher.DECRYPT_MODE, keyPair.getPublic());
 
 			// load file from private storage
 			FileInputStream fin = context.openFileInput(identifier + suffix);
-			CipherInputStream cis = new CipherInputStream(new BufferedInputStream(fin), cipher);
 
-			// read and decrypt file
+			// read IV
+			byte[] iv = new byte[12];
+			fin.read(iv, 0, 12);
+			cipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
+
+			// read decrypted data
+			CipherInputStream cis = new CipherInputStream(new BufferedInputStream(fin), cipher);
 			byte[] buffer = new byte[1024];
 			int length = 0;
 			int total = 0;
@@ -185,24 +195,15 @@ public class KeychainItemProxy extends KrollProxy {
 			if (!identifier.isEmpty()) {
 				try {
 					if (!keyStore.containsAlias(identifier)) {
-						Calendar startDate = Calendar.getInstance();
-						Calendar endDate = Calendar.getInstance();
-						endDate.add(Calendar.YEAR, 1);
-						KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
-								.setAlias(identifier)
-								.setKeyType("RSA")
-								.setKeySize(2048)
-								.setSubject(new X500Principal("CN=titouchid"))
-								.setSerialNumber(BigInteger.ONE)
-								.setStartDate(startDate.getTime())
-								.setEndDate(endDate.getTime())
-								.build();
-						KeyPairGenerator generator = KeyPairGenerator.getInstance("RSA", "AndroidKeyStore");
-						generator.initialize(spec);
-						keyPair = generator.generateKeyPair();
+						KeyGenerator generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, "AndroidKeyStore");
+						generator.init(new KeyGenParameterSpec.Builder(identifier,
+								KeyProperties.PURPOSE_ENCRYPT | KeyProperties.PURPOSE_DECRYPT)
+								.setBlockModes(KeyProperties.BLOCK_MODE_GCM)
+								.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+								.build());
+						key = generator.generateKey();
 					} else {
-						KeyStore.PrivateKeyEntry keys = (KeyStore.PrivateKeyEntry) keyStore.getEntry(identifier, null);
-						keyPair = new KeyPair(keys.getCertificate().getPublicKey(), keys.getPrivateKey());
+						key = (SecretKey) keyStore.getKey(identifier, null);
 					}
 				} catch (Exception e) {
 					Log.e(TAG, e.toString());
