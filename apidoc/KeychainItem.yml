@@ -1,7 +1,7 @@
 name: Modules.TouchId.KeychainItem
 summary: Represents a keychain item to communicate with the native iOS keychain.
 platforms: [iphone, ipad]
-since: {iphone: "6.1.0", ipad: "6.1.0"}
+since: {iphone: "6.1.0", ipad: "6.1.0", android: "6.1.0"}
 extends: Titanium.Module
 description: |
     The following example demonstrates the basic usage to save, read and delete 
@@ -43,6 +43,8 @@ methods:
         The <Modules.TiTouchId.KeychainItem.save> event is triggered when
         a new item is saved. If an error occurs, the `error` key informs you 
         about the exact error.
+
+        On Android this will also overwrite any existing value.
     parameters:
       - name: value
         summary: The value to be stored in the keychain.
@@ -105,11 +107,12 @@ events:
 
 ---
 name: KeychainItemType
-platforms: [iphone, ipad]
+platforms: [iphone, ipad, android]
 since: "6.1.0"
 summary: Dictionary passed to the `createKeychainItem` method.
 properties:
     - name: identifier
+      platforms: [iphone, ipad, android]
       optional: false
       summary: |
           Required identifier to create or receive a keychain item. The identifier 
@@ -117,6 +120,7 @@ properties:
       type: String
           
     - name: accessGroup
+      platforms: [iphone, ipad]
       summary: |
           Optional identifier used to define the access group the keychain item
           should be valid. This can be used to share a keychain item across two
@@ -125,7 +129,8 @@ properties:
           [official iOS documentation](https://developer.apple.com/reference/security/ksecattraccessgroup).
       type: String
 
-    - name: accessibilityMode  
+    - name: accessibilityMode
+      platforms: [iphone, ipad]
       summary: |
           Optional constant used for determining when a keychain item should be 
           readable. Use this property with caution to enable advanced access control.
@@ -135,6 +140,7 @@ properties:
       constants: Modules.TouchId.ACCESSIBLE_*
       
     - name: accessControlMode
+      platforms: [iphone, ipad]
       summary: |
           Optional constants used to determine the access control with the specified 
           protection type and flags. The constants can be concatenated by using the
@@ -143,6 +149,7 @@ properties:
       constants: Modules.TouchId.ACCESS_CONTROL_*
 
     - name: options
+      platforms: [iphone, ipad]
       summary: |
           Optional parameter used to specify additional values to the keychain.
           Example: The raw-value of `kSecUseOperationPrompt` is `u_OpPrompt`, so
