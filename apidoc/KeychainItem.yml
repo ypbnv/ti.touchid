@@ -71,8 +71,8 @@ methods:
         type: String
     since: "6.1.0"
     
-  - name: delete
-    summary: Deletes an existing value from the iOS keychain.
+  - name: reset
+    summary: Resets an existing value from the iOS keychain.
     description: |
         The <Modules.TiTouchId.KeychainItem.reset> event is triggered when
         a new item is saved. If an error occurs, the `error` key informs you 
