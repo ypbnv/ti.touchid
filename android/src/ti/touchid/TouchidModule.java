@@ -9,7 +9,6 @@ package ti.touchid;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.titanium.TiApplication;
-import android.os.Build;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
 
@@ -17,6 +16,7 @@ import java.lang.Override;
 import java.util.HashMap;
 
 import android.app.Activity;
+import android.os.Build;
 
 @Kroll.module(name="Touchid", id="ti.touchid")
 public class TouchidModule extends KrollModule
@@ -28,6 +28,15 @@ public class TouchidModule extends KrollModule
 	@Kroll.constant public static final int SERVICE_VERSION_UPDATE_REQUIRED = 2;
 	@Kroll.constant public static final int SERVICE_DISABLED = 3;
 	@Kroll.constant public static final int SERVICE_INVALID = 9;
+
+	@Kroll.constant public static final int ACCESSIBLE_ALWAYS = KeychainItemProxy.ACCESSIBLE_ALWAYS;
+	@Kroll.constant public static final int ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY = KeychainItemProxy.ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY;
+	@Kroll.constant public static final int ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY = KeychainItemProxy.ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY;
+
+	@Kroll.constant public static final int ACCESS_CONTROL_USER_PRESENCE = KeychainItemProxy.ACCESS_CONTROL_USER_PRESENCE;
+	@Kroll.constant public static final int ACCESS_CONTROL_DEVICE_PASSCODE = KeychainItemProxy.ACCESS_CONTROL_DEVICE_PASSCODE;
+	@Kroll.constant public static final int ACCESS_CONTROL_TOUCH_ID_ANY = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_ANY;
+	@Kroll.constant public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_CURRENT_SET;
 
 	protected FingerPrintHelper mfingerprintHelper;
 
