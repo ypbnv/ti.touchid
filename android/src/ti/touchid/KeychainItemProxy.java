@@ -47,7 +47,6 @@ public class KeychainItemProxy extends KrollProxy {
 	public static final String PROPERTY_ACCESSIBILITY_MODE = "accessibilityMode";
 	public static final String PROPERTY_ACCESS_CONTROL_MODE = "accessControlMode";
 
-
 	public static final String EVENT_SAVE = "save";
 	public static final String EVENT_READ = "read";
 	public static final String EVENT_UPDATE = "update";

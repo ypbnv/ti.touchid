@@ -255,7 +255,7 @@ properties:
         attribute will migrate to a new device when using encrypted backups.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     
   - name: ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY
@@ -270,7 +270,7 @@ properties:
          items in this class to be deleted.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     
   - name: ACCESSIBLE_WHEN_UNLOCKED_THIS_DEVICE_ONLY
@@ -305,7 +305,7 @@ properties:
         restored to a new device, these items will be missing.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     
   - name: ACCESS_CONTROL_USER_PRESENCE
@@ -315,7 +315,7 @@ properties:
         if fingers are added or removed.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     
   - name: ACCESS_CONTROL_TOUCH_ID_ANY
@@ -325,7 +325,7 @@ properties:
         fingers are added or removed.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     
   - name: ACCESS_CONTROL_TOUCH_ID_CURRENT_SET
@@ -335,14 +335,14 @@ properties:
         are added or removed, the item is invalidated.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     
   - name: ACCESS_CONTROL_DEVICE_PASSCODE
     summary: Constraint - Device passcode.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     
   - name: ACCESS_CONTROL_OR

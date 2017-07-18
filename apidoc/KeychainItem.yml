@@ -130,7 +130,7 @@ properties:
       type: String
 
     - name: accessibilityMode
-      platforms: [iphone, ipad]
+      platforms: [iphone, ipad, android]
       summary: |
           Optional constant used for determining when a keychain item should be 
           readable. Use this property with caution to enable advanced access control.
@@ -140,13 +140,21 @@ properties:
       constants: Modules.TouchId.ACCESSIBLE_*
       
     - name: accessControlMode
-      platforms: [iphone, ipad]
+      platforms: [iphone, ipad, android]
       summary: |
           Optional constants used to determine the access control with the specified 
           protection type and flags. The constants can be concatenated by using the
           Bit OR operator, e.g. `optionA | optionB | optionC`.
       type: Number
       constants: Modules.TouchId.ACCESS_CONTROL_*
+
+    - name: cipher
+      platforms: [android]
+      summary: |
+          Define the cipher used to encrypt keychain items.
+          [Android supported ciphers](https://developer.android.com/training/articles/keystore.html#SupportedCiphers)
+      default: AES/CBC/PKCS7Padding
+      type: String
 
     - name: options
       platforms: [iphone, ipad]
