@@ -176,19 +176,25 @@ public class KeychainItemProxy extends KrollProxy {
 			eventBusy = true;
 
 			EVENT e = eventQueue.get(0);
+			KrollDict result = null;
 			switch (e.event) {
 				case EVENT_UPDATE:
 				case EVENT_SAVE:
-					initEncrypt();
+					result = initEncrypt();
 					break;
 				case EVENT_READ:
-					initDecrypt();
+					result = initDecrypt();
 					break;
 				case EVENT_RESET:
-					doReset();
+					result = doReset();
 					break;
 			}
-			if (!useFingerprintAuthentication()) {
+			if (result != null) {
+				fireEvent(e.event, result);
+				eventQueue.remove(e);
+				eventBusy = false;
+				processEvents();
+			} else if (!useFingerprintAuthentication()) {
 				doEvents();
 			}
 		}
@@ -199,6 +205,11 @@ public class KeychainItemProxy extends KrollProxy {
 		switch (e.event) {
 			case EVENT_UPDATE:
 				if (!exists()) {
+					KrollDict result = new KrollDict();
+					result.put("success", false);
+					result.put("code", -1);
+					result.put("error", "could not update, item does not exist.");
+					fireEvent(e.event, result);
 					break;
 				}
 			case EVENT_SAVE:
@@ -214,7 +225,7 @@ public class KeychainItemProxy extends KrollProxy {
 		processEvents();
 	}
 
-	private void initEncrypt() {
+	private KrollDict initEncrypt() {
 		try {
 			// initialize encryption cipher
 			cipher.init(Cipher.ENCRYPT_MODE, key);
@@ -225,8 +236,14 @@ public class KeychainItemProxy extends KrollProxy {
 			}
 
 		} catch (Exception e) {
-			Log.e(TAG, e.toString());
+			KrollDict result = new KrollDict();
+			result.put("identifier", identifier);
+			result.put("success", false);
+			result.put("code", -1);
+			result.put("error", e.getMessage());
+			return result;
 		}
+		return null;
 	}
 
 	private KrollDict doEncrypt(String value) {
@@ -254,7 +271,7 @@ public class KeychainItemProxy extends KrollProxy {
 		return result;
 	}
 
-	private void initDecrypt() {
+	private KrollDict initDecrypt() {
 		try {
 			// load file from private storage
 			FileInputStream fin = context.openFileInput(identifier + suffix);
@@ -273,8 +290,18 @@ public class KeychainItemProxy extends KrollProxy {
 			}
 
 		} catch (Exception e) {
-			Log.e(TAG, e.toString());
+			KrollDict result = new KrollDict();
+			result.put("identifier", identifier);
+			result.put("success", false);
+			result.put("code", -1);
+			if (e instanceof FileNotFoundException) {
+				result.put("error", "keychain data does not exist!");
+			} else {
+				result.put("error", e.getMessage());
+			}
+			return result;
 		}
+		return null;
 	}
 
 	private KrollDict doDecrypt() {
@@ -313,7 +340,7 @@ public class KeychainItemProxy extends KrollProxy {
 		return result;
 	}
 
-	private void doReset() {
+	private KrollDict doReset() {
 		KrollDict result = new KrollDict();
 		boolean deleted = false;
 
@@ -327,14 +354,17 @@ public class KeychainItemProxy extends KrollProxy {
 				try {
 					keyStore.deleteEntry(identifier);
 				} catch (Exception e) {
-					Log.d(TAG, "could not remove key");
+					deleted = false;
+					result.put("error", "could not remove key");
 				}
+			} else {
+				result.put("error", "could not delete data");
 			}
 		}
 
 		result.put("success", deleted);
 		result.put("code", deleted ? 0 : -1);
-		fireEvent(EVENT_RESET, result);
+		return result;
 	}
 
 	private boolean exists() {
@@ -410,7 +440,7 @@ public class KeychainItemProxy extends KrollProxy {
 								(accessControlMode & (ACCESS_CONTROL_USER_PRESENCE | ACCESS_CONTROL_DEVICE_PASSCODE | ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
 							spec.setUserAuthenticationRequired(true);
 						}
-						if ((accessControlMode & ACCESS_CONTROL_TOUCH_ID_CURRENT_SET) != 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+						if ((accessControlMode & ACCESS_CONTROL_TOUCH_ID_CURRENT_SET) != 0 && Build.VERSION.SDK_INT >= 24) {
 							spec.setInvalidatedByBiometricEnrollment(true);
 						}
 
