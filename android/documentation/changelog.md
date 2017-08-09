@@ -1,5 +1,7 @@
 # Change Log
 <pre>
+v2.2.0  Implement KeychainItem
+
 v2.1.0  Align module version with iOS
 
 v2.0.1 	Android: Documentation update
