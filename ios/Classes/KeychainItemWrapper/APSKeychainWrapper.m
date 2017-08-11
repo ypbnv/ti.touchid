@@ -199,14 +199,14 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
         (id)kSecAttrDescription: @""
     }];
     
-    if (_accessibilityMode) {
+    // Apply access-control if both accessibility-mode and access-control-mode provided
+    if (_accessibilityMode && _accessControlMode) {
         CFErrorRef error = NULL;
         SecAccessControlRef accessControl = SecAccessControlCreateWithFlags(kCFAllocatorDefault, _accessibilityMode, _accessControlMode, &error);
         
         if (error == NULL || accessControl != NULL) {
             [baseAttributes setObject:(__bridge id)accessControl forKey:(id)kSecAttrAccessControl];
-            [baseAttributes setObject:(id)kSecUseAuthenticationUIAllow forKey:(id)kSecUseAuthenticationUI];
-            
+
             CFRelease(accessControl);
         } else {
             NSLog(@"Error: Could not create access control: %@", [(__bridge NSError*)error localizedDescription]);
@@ -215,6 +215,10 @@ APSErrorDomain const APSKeychainWrapperErrorDomain = @"com.appcelerator.keychain
                 CFRelease(accessControl);
             }
         }
+        
+    // Apply only accessibility constraints if provided
+    } else if (_accessibilityMode) {
+        [baseAttributes setObject:(__bridge id)_accessibilityMode forKey:(id)kSecAttrAccessible];
     }
     
     // Making it possible to apply more options to keep it flexible

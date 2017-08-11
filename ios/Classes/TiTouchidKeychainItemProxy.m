@@ -176,11 +176,10 @@
             return [accessControlMode longLongValue];
         } else {
             NSLog(@"[WARN] Ti.TouchID: The property \"accessControlMode\" must either be a single constant or an array of multiple constants.");
-            NSLog(@"[WARN] Ti.TouchID: Falling back to default `ACCESS_CONTROL_USER_PRESENCE`");
         }
     }
     
-    return kSecAccessControlUserPresence;
+    return NULL;
 }
 
 @end
