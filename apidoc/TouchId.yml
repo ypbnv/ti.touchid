@@ -168,7 +168,7 @@ properties:
     summary: Constant indicating that the authentication was not successful.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
 
   - name: ERROR_PASSCODE_NOT_SET
     summary: Constant indicating that the passcode is not set for the device.
@@ -224,7 +224,7 @@ properties:
     summary: Constant indicating that Touch ID has locked out.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     
   - name: ACCESSIBLE_WHEN_UNLOCKED
     summary: |
