@@ -113,25 +113,27 @@ public class KeychainItemProxy extends KrollProxy {
 				@Override
 				public void onAuthenticationError(int errorCode, CharSequence errString) {
 					super.onAuthenticationError(errorCode, errString);
-					Log.e(TAG, errString.toString());
+					if (errorCode != FingerprintManager.FINGERPRINT_ERROR_CANCELED) {
+						doEvents(errorCode, errString.toString());
+					}
 				}
 
 				@Override
 				public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
 					super.onAuthenticationHelp(helpCode, helpString);
-					Log.w(TAG, helpString.toString());
+					doEvents(helpCode, helpString.toString());
 				}
 
 				@Override
 				public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
 					super.onAuthenticationSucceeded(result);
-					doEvents();
+					doEvents(0, null);
 				}
 
 				@Override
 				public void onAuthenticationFailed() {
 					super.onAuthenticationFailed();
-					Log.e(TAG, "failed to authenticate fingerprint!");
+					doEvents(TouchidModule.ERROR_AUTHENTICATION_FAILED, "failed to authenticate fingerprint!");
 				}
 			};
 
@@ -195,32 +197,43 @@ public class KeychainItemProxy extends KrollProxy {
 				eventBusy = false;
 				processEvents();
 			} else if (!useFingerprintAuthentication()) {
-				doEvents();
+				doEvents(0, null);
 			}
 		}
 	}
 
-	private void doEvents() {
-		EVENT e = eventQueue.get(0);
-		switch (e.event) {
-			case EVENT_UPDATE:
-				if (!exists()) {
-					KrollDict result = new KrollDict();
-					result.put("success", false);
-					result.put("code", -1);
-					result.put("error", "could not update, item does not exist.");
-					fireEvent(e.event, result);
-					break;
+	private void doEvents(int errorCode, String message) {
+		KrollDict result = null;
+		if (!eventQueue.isEmpty()) {
+			EVENT e = eventQueue.get(0);
+			if (errorCode != 0) {
+				result = new KrollDict();
+				result.put("success", false);
+				result.put("code", errorCode);
+				result.put("error", message);
+			} else {
+				switch (e.event) {
+					case EVENT_UPDATE:
+						if (!exists()) {
+							result = new KrollDict();
+							result.put("success", false);
+							result.put("code", -1);
+							result.put("error", "could not update, item does not exist.");
+							break;
+						}
+					case EVENT_SAVE:
+						result = doEncrypt(e.value);
+						break;
+					case EVENT_READ:
+						result = doDecrypt();
+						break;
 				}
-			case EVENT_SAVE:
-				fireEvent(e.event, doEncrypt(e.value));
-				break;
-			case EVENT_READ:
-				fireEvent(e.event, doDecrypt());
-				break;
+			}
+			if (result != null) {
+				fireEvent(e.event, result);
+			}
+			eventQueue.remove(e);
 		}
-		eventQueue.remove(e);
-
 		eventBusy = false;
 		processEvents();
 	}
@@ -345,19 +358,20 @@ public class KeychainItemProxy extends KrollProxy {
 		boolean deleted = false;
 
 		// delete file from private storage
-		File file = new File(identifier + suffix);
-		if (file != null) {
+		File file = context.getFileStreamPath(identifier + suffix);
+		if (file != null && file.exists()) {
 			deleted = context.deleteFile(identifier + suffix);
 
 			// remove key from Android key store
-			if (deleted) {
+			/*if (deleted) {
 				try {
 					keyStore.deleteEntry(identifier);
 				} catch (Exception e) {
 					deleted = false;
 					result.put("error", "could not remove key");
 				}
-			} else {
+			} else {*/
+			if (!deleted) {
 				result.put("error", "could not delete data");
 			}
 		}
@@ -368,7 +382,8 @@ public class KeychainItemProxy extends KrollProxy {
 	}
 
 	private boolean exists() {
-		return new File(identifier + suffix) != null;
+		File file = context.getFileStreamPath(identifier + suffix);
+		return file != null && file.exists();
 	}
 
 	@Kroll.method

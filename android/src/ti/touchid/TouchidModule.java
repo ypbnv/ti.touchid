@@ -16,6 +16,7 @@ import java.lang.Override;
 import java.util.HashMap;
 
 import android.app.Activity;
+import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 
 @Kroll.module(name="Touchid", id="ti.touchid")
@@ -37,6 +38,9 @@ public class TouchidModule extends KrollModule
 	@Kroll.constant public static final int ACCESS_CONTROL_DEVICE_PASSCODE = KeychainItemProxy.ACCESS_CONTROL_DEVICE_PASSCODE;
 	@Kroll.constant public static final int ACCESS_CONTROL_TOUCH_ID_ANY = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_ANY;
 	@Kroll.constant public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_CURRENT_SET;
+
+	@Kroll.constant public static final int ERROR_TOUCH_ID_LOCKOUT = FingerprintManager.FINGERPRINT_ERROR_LOCKOUT;
+	@Kroll.constant public static final int ERROR_AUTHENTICATION_FAILED = -1;
 
 	protected FingerPrintHelper mfingerprintHelper;
 
