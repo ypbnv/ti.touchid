@@ -41,6 +41,9 @@ public class TouchidModule extends KrollModule
 
 	@Kroll.constant public static final int ERROR_TOUCH_ID_LOCKOUT = FingerprintManager.FINGERPRINT_ERROR_LOCKOUT;
 	@Kroll.constant public static final int ERROR_AUTHENTICATION_FAILED = -1;
+	@Kroll.constant public static final int ERROR_TOUCH_ID_NOT_ENROLLED = -2;
+	@Kroll.constant public static final int ERROR_TOUCH_ID_NOT_AVAILABLE = -3;
+	@Kroll.constant public static final int ERROR_PASSCODE_NOT_SET = -4;
 
 	protected FingerPrintHelper mfingerprintHelper;
 
@@ -77,7 +80,7 @@ public class TouchidModule extends KrollModule
 
 		KrollDict response = new KrollDict();
 		response.put("canAuthenticate", false);
-
+		response.put("code", TouchidModule.ERROR_TOUCH_ID_NOT_AVAILABLE);
 		if (Build.VERSION.SDK_INT < 23) {
 			response.put("error", "Device is running with API < 23");
 		} else {

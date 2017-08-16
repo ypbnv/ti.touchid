@@ -13,6 +13,7 @@ import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.titanium.TiApplication;
 
+import android.app.KeyguardManager;
 import android.content.Context;
 import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.FingerprintManager.CryptoObject;
@@ -27,6 +28,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,8 +60,8 @@ public class KeychainItemProxy extends KrollProxy {
 
 	public static final int ACCESS_CONTROL_USER_PRESENCE = 1;
 	public static final int ACCESS_CONTROL_DEVICE_PASSCODE = 2;
-	public static final int ACCESS_CONTROL_TOUCH_ID_ANY = 3;
-	public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = 4;
+	public static final int ACCESS_CONTROL_TOUCH_ID_ANY = 4;
+	public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = 8;
 
 	private KeyStore keyStore;
 	private SecretKey key;
@@ -77,6 +79,7 @@ public class KeychainItemProxy extends KrollProxy {
 	private String identifier = "";
 	private int accessibilityMode = 0;
 	private int accessControlMode = 0;
+	private KeyguardManager keyguardManager;
 	private String suffix = "_kc.dat";
 	private Context context;
 
@@ -106,6 +109,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 		try {
 			context = TiApplication.getAppRootOrCurrentActivity();
+			keyguardManager = context.getSystemService(KeyguardManager.class);
 
 			// fingerprint authentication
 			fingerprintManager = context.getSystemService(FingerprintManager.class);
@@ -252,8 +256,13 @@ public class KeychainItemProxy extends KrollProxy {
 			KrollDict result = new KrollDict();
 			result.put("identifier", identifier);
 			result.put("success", false);
-			result.put("code", -1);
-			result.put("error", e.getMessage());
+			if (e instanceof InvalidKeyException && key == null) {
+				result.put("code", TouchidModule.ERROR_PASSCODE_NOT_SET);
+				result.put("error", "device is not secure, could not generate key!");
+			} else {
+				result.put("code", -1);
+				result.put("error", e.getMessage());
+			}
 			return result;
 		}
 		return null;
@@ -309,6 +318,9 @@ public class KeychainItemProxy extends KrollProxy {
 			result.put("code", -1);
 			if (e instanceof FileNotFoundException) {
 				result.put("error", "keychain data does not exist!");
+			} else if (e instanceof InvalidKeyException && key == null) {
+				result.put("code", TouchidModule.ERROR_PASSCODE_NOT_SET);
+				result.put("error", "device is not secure, could not generate key!");
 			} else {
 				result.put("error", e.getMessage());
 			}
@@ -452,7 +464,7 @@ public class KeychainItemProxy extends KrollProxy {
 								.setEncryptionPaddings(padding);
 
 						if ((accessibilityMode & (ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY | ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY)) != 0 ||
-								(accessControlMode & (ACCESS_CONTROL_USER_PRESENCE | ACCESS_CONTROL_DEVICE_PASSCODE | ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
+								(accessControlMode & (ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
 							spec.setUserAuthenticationRequired(true);
 						}
 						if ((accessControlMode & ACCESS_CONTROL_TOUCH_ID_CURRENT_SET) != 0 && Build.VERSION.SDK_INT >= 24) {
@@ -463,6 +475,10 @@ public class KeychainItemProxy extends KrollProxy {
 						key = generator.generateKey();
 					} else {
 						key = (SecretKey) keyStore.getKey(identifier, null);
+					}
+					if ((accessControlMode & (ACCESS_CONTROL_USER_PRESENCE | ACCESS_CONTROL_DEVICE_PASSCODE)) != 0 && !keyguardManager.isDeviceSecure()) {
+						key = null;
+						Log.e(TAG, "device is not secure, could not generate key!");
 					}
 					cipher = Cipher.getInstance(getCipher());
 					cryptoObject = new FingerprintManager.CryptoObject(cipher);

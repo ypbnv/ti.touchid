@@ -174,19 +174,19 @@ properties:
     summary: Constant indicating that the passcode is not set for the device.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     
   - name: ERROR_TOUCH_ID_NOT_AVAILABLE
     summary: Constant indicating that Touch ID is not available on the device.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
 
   - name: ERROR_TOUCH_ID_NOT_ENROLLED
     summary: Constant indicating that Touch ID does not have any enrolled fingerprints.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
 
   - name: ERROR_SYSTEM_CANCEL
     summary: |
