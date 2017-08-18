@@ -50,7 +50,8 @@ description: |
     
     The current context will, once evaluated, been used until it's instance gets released or invalidated.
     You can you use the <Modules.TouchId.invalidate> method to force the user to be prompted everytime a
-    new authentication is triggered.
+    new 
+    tion is triggered.
         
     ### Native Keychain Integration (iOS-only)
     
@@ -62,21 +63,7 @@ description: |
     The module contains a sample application in the
     `<TITANIUM_SDK_HOME>/modules/iphone/ti.touchid/<VERSION>/example/` folder.
 
-methods:
-  - name: authenticationPolicy
-    summary: Sets the global authentication policy to use in this Touch ID context.
-    description: |
-        You should set this property before checking the availability or 
-        starting the authentication. By default, `AUTHENTICATION_POLICY_BIOMETRICS`
-        will be used to authenticate using the Touch ID sensor only. Using the
-        `AUTHENTICATION_POLICY_PASSCODE` constant will still try to authenticate
-        with Touch ID first and use the passcode as the fallback.
-    platforms: [iphone, ipad]
-    since: "6.1.0"
-    type: Number
-    constants: [Modules.TouchId.AUTHENTICATION_POLICY_*]
-    default: Modules.TouchId.AUTHENTICATION_POLICY_BIOMETRICS
-    
+methods:    
   - name: authenticate
     summary: Initiates the Touch ID authentication process.
     description: |
@@ -123,6 +110,20 @@ methods:
     returns:
         type: Boolean
 properties:    
+  - name: authenticationPolicy
+    summary: Sets the global authentication policy used in this Touch ID context.
+    description: |
+        You should set this property before checking the availability or 
+        starting the authentication. By default, `AUTHENTICATION_POLICY_BIOMETRICS`
+        will be used to authenticate using the Touch ID sensor only. Using the
+        `AUTHENTICATION_POLICY_PASSCODE` constant will still try to authenticate
+        with Touch ID first and use the passcode as the fallback.
+    platforms: [iphone, ipad]
+    since: "6.1.0"
+    type: Number
+    constants: [Modules.TouchId.AUTHENTICATION_POLICY_*]
+    default: Modules.TouchId.AUTHENTICATION_POLICY_BIOMETRICS
+    
   - name: AUTHENTICATION_POLICY_PASSCODE
     summary: Device owner was authenticated by Touch ID or device passcode.
     description: |
