@@ -19,7 +19,9 @@ import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.FingerprintManager.CryptoObject;
 import android.hardware.fingerprint.FingerprintManager.AuthenticationCallback;
 import android.os.Build;
-import android.security.keystore.*;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
+import android.security.keystore.KeyPermanentlyInvalidatedException;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
