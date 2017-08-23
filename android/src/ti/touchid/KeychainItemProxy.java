@@ -19,8 +19,7 @@ import android.hardware.fingerprint.FingerprintManager;
 import android.hardware.fingerprint.FingerprintManager.CryptoObject;
 import android.hardware.fingerprint.FingerprintManager.AuthenticationCallback;
 import android.os.Build;
-import android.security.keystore.KeyGenParameterSpec;
-import android.security.keystore.KeyProperties;
+import android.security.keystore.*;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -259,6 +258,9 @@ public class KeychainItemProxy extends KrollProxy {
 			if (e instanceof InvalidKeyException && key == null) {
 				result.put("code", TouchidModule.ERROR_PASSCODE_NOT_SET);
 				result.put("error", "device is not secure, could not generate key!");
+			} else if (e instanceof KeyPermanentlyInvalidatedException) {
+				result.put("code", TouchidModule.ERROR_KEY_PERMANENTLY_INVALIDATED);
+				result.put("error", "key permantently invalidated!");
 			} else {
 				result.put("code", -1);
 				result.put("error", e.getMessage());
@@ -321,6 +323,9 @@ public class KeychainItemProxy extends KrollProxy {
 			} else if (e instanceof InvalidKeyException && key == null) {
 				result.put("code", TouchidModule.ERROR_PASSCODE_NOT_SET);
 				result.put("error", "device is not secure, could not generate key!");
+			} else if (e instanceof KeyPermanentlyInvalidatedException) {
+				result.put("code", TouchidModule.ERROR_KEY_PERMANENTLY_INVALIDATED);
+				result.put("error", "key permantently invalidated!");
 			} else {
 				result.put("error", e.getMessage());
 			}

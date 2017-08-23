@@ -212,7 +212,9 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		} else {
 			response.put("canAuthenticate", false);
 			response.put("error", error);
-			response.put("code", TouchidModule.ERROR_TOUCH_ID_NOT_AVAILABLE);
+			if (!response.containsKey("code")) {
+				response.put("code", TouchidModule.ERROR_TOUCH_ID_NOT_AVAILABLE);
+			}
 		}
 		return response;
 	}
