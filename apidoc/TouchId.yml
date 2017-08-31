@@ -420,6 +420,8 @@ properties:
     
   - name: fallbackTitle
     summary: |
+        Note: This property is iOS only!
+
         Allows fallback button title customization. A default localized title 
         "Enter Password" is used when this property is left nil. If set to empty 
         string, the button will be hidden.
@@ -429,6 +431,8 @@ properties:
     
   - name: cancelTitle
     summary: |
+         Note: This property is iOS only!
+
         Allows cancel button title customization. A default localized title "Cancel" 
         is used when this property is not defined or is set to empty string.
     type: String
@@ -437,6 +441,8 @@ properties:
      
   - name: keepAlive
     summary: |
+        Note: This property is iOS only!
+
         Determines whether the auth-context should be kept alive after authorizing
         with the TouchID-API and can be used to automatically terminate an auth-context
         after authorizing. 
