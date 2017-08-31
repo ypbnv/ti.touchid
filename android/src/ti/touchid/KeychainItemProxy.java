@@ -29,6 +29,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.util.ArrayList;
@@ -284,7 +285,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// write encrypted data
 			CipherOutputStream cos = new CipherOutputStream(new BufferedOutputStream(fos), cipher);
-			cos.write(value.getBytes("UTF-8"));
+			cos.write(value.getBytes(StandardCharsets.UTF_8));
 			cos.close();
 
 			result.put("success", true);
@@ -352,10 +353,10 @@ public class KeychainItemProxy extends KrollProxy {
 			String decrypted = "";
 			while ((length = cis.read(buffer)) != -1) {
 				// since we only encrypt strings, this is acceptable
-				decrypted += new String(buffer, "UTF-8");
+				decrypted += new String(buffer, StandardCharsets.UTF_8);
 				total += length;
 			}
-			decrypted = decrypted.substring(0, total);
+			decrypted = decrypted.substring(0, total).replaceFirst("\u0000+$", "");
 
 			result.put("success", true);
 			result.put("code", 0);
