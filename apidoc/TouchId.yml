@@ -50,8 +50,7 @@ description: |
     
     The current context will, once evaluated, been used until it's instance gets released or invalidated.
     You can you use the <Modules.TouchId.invalidate> method to force the user to be prompted everytime a
-    new 
-    tion is triggered.
+    new action is triggered.
         
     ### Native Keychain Integration (iOS-only)
     
