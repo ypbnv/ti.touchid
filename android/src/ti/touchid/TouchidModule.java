@@ -16,6 +16,7 @@ import java.lang.Override;
 import java.util.HashMap;
 
 import android.app.Activity;
+import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 
 @Kroll.module(name="Touchid", id="ti.touchid")
@@ -37,6 +38,19 @@ public class TouchidModule extends KrollModule
 	@Kroll.constant public static final int ACCESS_CONTROL_DEVICE_PASSCODE = KeychainItemProxy.ACCESS_CONTROL_DEVICE_PASSCODE;
 	@Kroll.constant public static final int ACCESS_CONTROL_TOUCH_ID_ANY = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_ANY;
 	@Kroll.constant public static final int ACCESS_CONTROL_TOUCH_ID_CURRENT_SET = KeychainItemProxy.ACCESS_CONTROL_TOUCH_ID_CURRENT_SET;
+
+	@Kroll.constant public static final int ERROR_TOUCH_ID_LOCKOUT = FingerprintManager.FINGERPRINT_ERROR_LOCKOUT;
+	@Kroll.constant public static final int ERROR_AUTHENTICATION_FAILED = -1;
+	@Kroll.constant public static final int ERROR_TOUCH_ID_NOT_ENROLLED = -2;
+	@Kroll.constant public static final int ERROR_TOUCH_ID_NOT_AVAILABLE = -3;
+	@Kroll.constant public static final int ERROR_PASSCODE_NOT_SET = -4;
+	@Kroll.constant public static final int ERROR_KEY_PERMANENTLY_INVALIDATED = -5;
+
+	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_PARTIAL = FingerprintManager.FINGERPRINT_ACQUIRED_PARTIAL;
+	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_INSUFFICIENT = FingerprintManager.FINGERPRINT_ACQUIRED_INSUFFICIENT;
+	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_IMAGER_DIRTY = FingerprintManager.FINGERPRINT_ACQUIRED_IMAGER_DIRTY;
+	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_TOO_SLOW = FingerprintManager.FINGERPRINT_ACQUIRED_TOO_SLOW;
+	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_TOO_FAST = FingerprintManager.FINGERPRINT_ACQUIRED_TOO_FAST;
 
 	protected FingerPrintHelper mfingerprintHelper;
 
@@ -73,7 +87,7 @@ public class TouchidModule extends KrollModule
 
 		KrollDict response = new KrollDict();
 		response.put("canAuthenticate", false);
-
+		response.put("code", TouchidModule.ERROR_TOUCH_ID_NOT_AVAILABLE);
 		if (Build.VERSION.SDK_INT < 23) {
 			response.put("error", "Device is running with API < 23");
 		} else {

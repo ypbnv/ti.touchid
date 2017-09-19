@@ -193,6 +193,8 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 		String error = "";
 		boolean hardwareDetected = mFingerprintManager.isHardwareDetected();
 		boolean hasFingerprints = mFingerprintManager.hasEnrolledFingerprints();
+		KrollDict response = new KrollDict();
+
 		if (!hardwareDetected) {
 			error = error + "Hardware not detected";
 		}
@@ -202,14 +204,17 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 			} else {
 				error = error +", and no enrolled fingerprints";
 			}
+			response.put("code", TouchidModule.ERROR_TOUCH_ID_NOT_ENROLLED);
 		}
 
-		KrollDict response = new KrollDict();
 		if (error.isEmpty()) {
 			response.put("canAuthenticate", true);
 		} else {
 			response.put("canAuthenticate", false);
 			response.put("error", error);
+			if (!response.containsKey("code")) {
+				response.put("code", TouchidModule.ERROR_TOUCH_ID_NOT_AVAILABLE);
+			}
 		}
 		return response;
 	}
