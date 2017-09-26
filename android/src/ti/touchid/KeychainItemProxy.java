@@ -351,12 +351,19 @@ public class KeychainItemProxy extends KrollProxy {
 			int length = 0;
 			int total = 0;
 			String decrypted = "";
+
+			// since we only encrypt strings, this is acceptable
 			while ((length = cis.read(buffer)) != -1) {
-				// since we only encrypt strings, this is acceptable
-				decrypted += new String(buffer, StandardCharsets.UTF_8);
+				// obtain decrypted string from buffer
+				String part = new String(buffer, StandardCharsets.UTF_8);
+
+				// remove trailing terminators
+				part = part.substring(0, length).replaceFirst("\u0000+$", "");
+
+				// append to decrypted string
+				decrypted += part;
 				total += length;
 			}
-			decrypted = decrypted.substring(0, total).replaceFirst("\u0000+$", "");
 
 			result.put("success", true);
 			result.put("code", 0);
