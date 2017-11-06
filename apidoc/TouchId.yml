@@ -171,25 +171,25 @@ properties:
     summary: Constant indicating that the authentication was not successful.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
 
   - name: ERROR_PASSCODE_NOT_SET
     summary: Constant indicating that the passcode is not set for the device.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     
   - name: ERROR_TOUCH_ID_NOT_AVAILABLE
     summary: Constant indicating that Touch ID is not available on the device.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
 
   - name: ERROR_TOUCH_ID_NOT_ENROLLED
     summary: Constant indicating that Touch ID does not have any enrolled fingerprints.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
 
   - name: ERROR_SYSTEM_CANCEL
     summary: |
@@ -227,7 +227,13 @@ properties:
     summary: Constant indicating that Touch ID has locked out.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
+
+  - name: ERROR_KEY_PERMANENTLY_INVALIDATED
+    summary: Constant indicating that the key has been permanentely invalidated.
+    type: Number
+    permission: read-only
+    platforms: [android]
     
   - name: ACCESSIBLE_WHEN_UNLOCKED
     summary: |
@@ -381,6 +387,41 @@ properties:
     permission: read-only
     platforms: [iphone, ipad]
     since: "6.1.0"
+
+  - name: FINGERPRINT_ACQUIRED_PARTIAL
+    summary: Only a partial fingerprint image was detected.
+    type: Number
+    permission: read-only
+    platforms: [android]
+    since: "6.2.0"
+
+  - name: FINGERPRINT_ACQUIRED_INSUFFICIENT
+    summary: The fingerprint image was too noisy to process due to a detected condition (i.e. dry skin) or a possibly dirty sensor.
+    type: Number
+    permission: read-only
+    platforms: [android]
+    since: "6.2.0"
+
+  - name: FINGERPRINT_ACQUIRED_IMAGER_DIRTY
+    summary: The fingerprint image was too noisy due to suspected or detected dirt on the sensor.
+    type: Number
+    permission: read-only
+    platforms: [android]
+    since: "6.2.0"
+
+  - name: FINGERPRINT_ACQUIRED_TOO_SLOW
+    summary: The fingerprint image was unreadable due to lack of motion.
+    type: Number
+    permission: read-only
+    platforms: [android]
+    since: "6.2.0"
+
+  - name: FINGERPRINT_ACQUIRED_TOO_FAST
+    summary: The fingerprint image was incomplete due to quick motion.
+    type: Number
+    permission: read-only
+    platforms: [android]
+    since: "6.2.0"
 
 ---
 name: TouchIdAuthenticationType
