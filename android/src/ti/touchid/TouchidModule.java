@@ -8,6 +8,7 @@ package ti.touchid;
 
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
+import org.appcelerator.kroll.common.Log;
 import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
@@ -22,6 +23,7 @@ import android.os.Build;
 @Kroll.module(name="Touchid", id="ti.touchid")
 public class TouchidModule extends KrollModule
 {
+	private static final String TAG = "Touchid";
 	public static final int PERMISSION_CODE_FINGERPRINT = 99;
 
 	@Kroll.constant public static final int SUCCESS = 0;
@@ -53,21 +55,30 @@ public class TouchidModule extends KrollModule
 	@Kroll.constant public static final int FINGERPRINT_ACQUIRED_TOO_FAST = FingerprintManager.FINGERPRINT_ACQUIRED_TOO_FAST;
 
 	protected FingerPrintHelper mfingerprintHelper;
+	private Throwable fingerprintHelperException;
 
 	public TouchidModule() {
 		super();
-		Activity activity = TiApplication.getAppRootOrCurrentActivity();
+		init();
+	}
+
+	private void init() {
 		if (Build.VERSION.SDK_INT >= 23) {
 			try {
 				mfingerprintHelper = new FingerPrintHelper();
 			} catch (Exception e) {
 				mfingerprintHelper = null;
+				fingerprintHelperException = e.getCause();
+				Log.e(TAG, fingerprintHelperException.getMessage());
 			}
 		}
 	}
 
 	@Kroll.method
 	public void authenticate(HashMap params) {
+		if (mfingerprintHelper == null) {
+			init();
+		}
 		if (params == null || mfingerprintHelper == null) {
 			return;
 		}
@@ -81,6 +92,9 @@ public class TouchidModule extends KrollModule
 
 	@Kroll.method
 	public HashMap deviceCanAuthenticate() {
+		if (mfingerprintHelper == null) {
+			init();
+		}
 		if (Build.VERSION.SDK_INT >= 23 && mfingerprintHelper != null) {
 			return mfingerprintHelper.deviceCanAuthenticate();
 		}
@@ -90,6 +104,8 @@ public class TouchidModule extends KrollModule
 		response.put("code", TouchidModule.ERROR_TOUCH_ID_NOT_AVAILABLE);
 		if (Build.VERSION.SDK_INT < 23) {
 			response.put("error", "Device is running with API < 23");
+		} else if (fingerprintHelperException != null) {
+			response.put("error", fingerprintHelperException.getMessage());
 		} else {
 			response.put("error", "Device does not support fingerprint authentication");
 		}
@@ -99,6 +115,9 @@ public class TouchidModule extends KrollModule
 
 	@Kroll.method
 	public boolean isSupported() {
+		if (mfingerprintHelper == null) {
+			init();
+		}
 		if (Build.VERSION.SDK_INT >= 23 && mfingerprintHelper != null) {
 			return mfingerprintHelper.isDeviceSupported();
 		}
