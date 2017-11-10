@@ -9,8 +9,8 @@
 #import "TiModule.h"
 
 @interface TiTouchidModule : TiModule {
-    LAContext *authContext;
-    LAPolicy authPolicy;
+    LAContext *_authContext;
+    LAPolicy _authPolicy;
 }
 
 /**

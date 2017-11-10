@@ -27,23 +27,33 @@
 	return @"ti.touchid";
 }
 
+- (NSArray *)keySequence
+{
+    return @[@"authenticationPolicy"];
+}
+
+- (id)_initWithPageContext:(id<TiEvaluator>)context
+{
+    if (self = [super _initWithPageContext:context]) {
+        _authPolicy = LAPolicyDeviceOwnerAuthenticationWithBiometrics;
+    }
+  
+    return self;
+}
+
 - (void)dealloc
 {
-    RELEASE_TO_NIL(authContext);
+    RELEASE_TO_NIL(_authContext);
     [super dealloc];
 }
 
 - (LAContext*)authContext
 {
-    if (!authContext) {
-        authContext = [LAContext new];
-        
-        if (!authPolicy) {
-            authPolicy = LAPolicyDeviceOwnerAuthenticationWithBiometrics;
-        }
+    if (!_authContext) {
+        _authContext = [LAContext new];
     }
     
-    return authContext;
+    return _authContext;
 }
 
 #pragma mark Public API
@@ -51,12 +61,12 @@
 - (void)setAuthenticationPolicy:(id)value
 {
     ENSURE_TYPE(value, NSNumber);
-    authPolicy = [TiUtils intValue:value def:LAPolicyDeviceOwnerAuthenticationWithBiometrics];
+    _authPolicy = [TiUtils intValue:value def:LAPolicyDeviceOwnerAuthenticationWithBiometrics];
 }
 
 - (id)authenticationPolicy
 {
-    return NUMINTEGER(authPolicy ?: LAPolicyDeviceOwnerAuthenticationWithBiometrics);
+    return NUMINTEGER(_authPolicy ?: LAPolicyDeviceOwnerAuthenticationWithBiometrics);
 }
 
 - (NSNumber*)isSupported:(id)unused
@@ -68,7 +78,7 @@
     __block BOOL isSupported = NO;
     
     TiThreadPerformOnMainThread(^{
-        isSupported = [[self authContext] canEvaluatePolicy:authPolicy error:nil];
+        isSupported = [[self authContext] canEvaluatePolicy:_authPolicy error:nil];
     },YES);
     
     return NUMBOOL(isSupported);
@@ -101,7 +111,8 @@
     id allowableReuseDuration = [args valueForKey:@"allowableReuseDuration"];
     id fallbackTitle = [args valueForKey:@"fallbackTitle"];
     id cancelTitle = [args valueForKey:@"cancelTitle"];
-    
+    BOOL keepAlive = [TiUtils boolValue:@"keepAlive" properties:args def:YES];
+
     if(![callback isKindOfClass:[KrollCallback class]]) {
         NSLog(@"[WARN] Ti.TouchID: The parameter `callback` in `authenticate` must be a function.");
         return;
@@ -110,7 +121,7 @@
     [self replaceValue:callback forKey:@"callback" notification:NO];
     
     // Fail when Touch ID is not supported by the current device
-	if([isSupportedDict valueForKey:@"canAuthenticate"] == NUMBOOL(NO)) {
+    if ([isSupportedDict valueForKey:@"canAuthenticate"] == NUMBOOL(NO)) {
         TiThreadPerformOnMainThread(^{
             NSDictionary *event = @{
                 @"error": [isSupportedDict valueForKey:@"error"],
@@ -144,9 +155,9 @@
 #endif
     
     // Display the dialog if the security policy allows it (= device has Touch ID enabled)
-    if ([[self authContext] canEvaluatePolicy:authPolicy error:&authError]) {
+    if ([[self authContext] canEvaluatePolicy:_authPolicy error:&authError]) {
         TiThreadPerformOnMainThread(^{
-            [[self authContext] evaluatePolicy:authPolicy localizedReason:reason reply:^(BOOL success, NSError *error) {
+            [[self authContext] evaluatePolicy:_authPolicy localizedReason:reason reply:^(BOOL success, NSError *error) {
                 NSMutableDictionary *event = [NSMutableDictionary dictionary];
                 
                 if (error != nil) {
@@ -159,6 +170,10 @@
                 // TIMOB-24489: Use this callback invocation to prevent issues with Kroll-Thread
                 // and proxies that open another thread (e.g. Ti.Network)
                 [self fireCallback:@"callback" withArg:event withSource:self];
+              
+                if (!keepAlive) {
+                    RELEASE_TO_NIL(_authContext);
+                }
             }];
         }, NO);
         
@@ -183,18 +198,16 @@
 
 - (void)invalidate:(id)unused
 {
-    if (![TiUtils isIOS9OrGreater]) {
-        NSLog(@"[ERROR] Ti.TouchID: The method `invalidate` is only available in iOS 9 and later.");
-        return;
-    }
-
-    if (![self authContext]) {
+    if (!_authContext) {
         NSLog(@"[ERROR] Ti.TouchID: Cannot invalidate a Touch ID instance that does not exist. Use 'authenticate' before calling this.");
         return;
     }
-    
-    [[self authContext] invalidate];
-    RELEASE_TO_NIL(authContext);
+
+    if ([TiUtils isIOS9OrGreater]) {
+        [_authContext invalidate];
+    }
+
+    RELEASE_TO_NIL(_authContext);
 }
 
 - (NSDictionary*)deviceCanAuthenticate:(id)unused
@@ -208,7 +221,7 @@
     }
     
     NSError *authError = nil;
-    BOOL canAuthenticate = [[self authContext] canEvaluatePolicy:authPolicy error:&authError];
+    BOOL canAuthenticate = [[self authContext] canEvaluatePolicy:_authPolicy error:&authError];
     NSMutableDictionary *result = [NSMutableDictionary dictionaryWithDictionary:@{
         @"canAuthenticate": NUMBOOL(canAuthenticate)
     }];
