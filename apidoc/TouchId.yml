@@ -96,6 +96,8 @@ methods:
   - name: deviceCanAuthenticate
     summary: Checks to see if device is configured for Touch ID authentication.
     description: |
+        On Android this takes into account the `authenticationPolicy`.
+
         Example: 
             var TiTouchId = require("ti.touchid");
             var result = TiTouchId.deviceCanAuthenticate();
@@ -120,7 +122,7 @@ properties:
         will be used to authenticate using the Touch ID sensor only. Using the
         `AUTHENTICATION_POLICY_PASSCODE` constant will still try to authenticate
         with Touch ID first and use the passcode as the fallback.
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     type: Number
     constants: [Modules.TouchId.AUTHENTICATION_POLICY_*]
@@ -143,7 +145,7 @@ properties:
         progressively increased backoff delay.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
     
   - name: AUTHENTICATION_POLICY_BIOMETRICS
@@ -164,7 +166,7 @@ properties:
         After that, users have to unlock it by entering passcode.
     type: Number
     permission: read-only
-    platforms: [iphone, ipad]
+    platforms: [iphone, ipad, android]
     since: "6.1.0"
 
   - name: ERROR_AUTHENTICATION_FAILED

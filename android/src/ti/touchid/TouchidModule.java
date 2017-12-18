@@ -6,12 +6,14 @@
  */
 package ti.touchid;
 
+import org.appcelerator.kroll.KrollProxy;
 import org.appcelerator.kroll.KrollModule;
 import org.appcelerator.kroll.annotations.Kroll;
 import org.appcelerator.kroll.common.Log;
-import org.appcelerator.titanium.TiApplication;
 import org.appcelerator.kroll.KrollDict;
 import org.appcelerator.kroll.KrollFunction;
+import org.appcelerator.titanium.TiApplication;
+import org.appcelerator.titanium.util.TiConvert;
 
 import java.lang.Override;
 import java.util.HashMap;
@@ -20,17 +22,24 @@ import android.app.Activity;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 
-@Kroll.module(name="Touchid", id="ti.touchid")
+@Kroll.module(name="Touchid", id="ti.touchid", propertyAccessors = {
+	TouchidModule.PROPERTY_AUTHENTICATION_POLICY
+})
 public class TouchidModule extends KrollModule
 {
 	private static final String TAG = "Touchid";
 	public static final int PERMISSION_CODE_FINGERPRINT = 99;
+
+	public static final String PROPERTY_AUTHENTICATION_POLICY = "authenticationPolicy";
 
 	@Kroll.constant public static final int SUCCESS = 0;
 	@Kroll.constant public static final int SERVICE_MISSING = 1;
 	@Kroll.constant public static final int SERVICE_VERSION_UPDATE_REQUIRED = 2;
 	@Kroll.constant public static final int SERVICE_DISABLED = 3;
 	@Kroll.constant public static final int SERVICE_INVALID = 9;
+
+	@Kroll.constant public static final int AUTHENTICATION_POLICY_BIOMETRICS = 0;
+	@Kroll.constant public static final int AUTHENTICATION_POLICY_PASSCODE = 1;
 
 	@Kroll.constant public static final int ACCESSIBLE_ALWAYS = KeychainItemProxy.ACCESSIBLE_ALWAYS;
 	@Kroll.constant public static final int ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY = KeychainItemProxy.ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY;
@@ -57,6 +66,8 @@ public class TouchidModule extends KrollModule
 	protected FingerPrintHelper mfingerprintHelper;
 	private Throwable fingerprintHelperException;
 
+	private int authenticationPolicy = AUTHENTICATION_POLICY_BIOMETRICS;
+
 	public TouchidModule() {
 		super();
 		init();
@@ -71,6 +82,13 @@ public class TouchidModule extends KrollModule
 				fingerprintHelperException = e.getCause();
 				Log.e(TAG, fingerprintHelperException.getMessage());
 			}
+		}
+	}
+
+	@Override
+	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
+		if (key.equals(PROPERTY_AUTHENTICATION_POLICY)) {
+			authenticationPolicy = TiConvert.toInt(newValue);
 		}
 	}
 
@@ -96,7 +114,7 @@ public class TouchidModule extends KrollModule
 			init();
 		}
 		if (Build.VERSION.SDK_INT >= 23 && mfingerprintHelper != null) {
-			return mfingerprintHelper.deviceCanAuthenticate();
+			return mfingerprintHelper.deviceCanAuthenticate(authenticationPolicy);
 		}
 
 		KrollDict response = new KrollDict();

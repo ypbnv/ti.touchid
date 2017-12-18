@@ -251,7 +251,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// fingerprint authentication
 			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, null, 0, authenticationCallback, null);
+				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(), 0, authenticationCallback, null);
 			}
 
 		} catch (Exception e) {
@@ -313,7 +313,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// fingerprint authentication
 			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, null, 0, authenticationCallback, null);
+				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(), 0, authenticationCallback, null);
 			}
 
 		} catch (Exception e) {
