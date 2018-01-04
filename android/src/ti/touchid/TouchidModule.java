@@ -66,11 +66,15 @@ public class TouchidModule extends KrollModule
 	protected FingerPrintHelper mfingerprintHelper;
 	private Throwable fingerprintHelperException;
 
-	private int authenticationPolicy = AUTHENTICATION_POLICY_BIOMETRICS;
+	private static int authenticationPolicy = AUTHENTICATION_POLICY_BIOMETRICS;
 
 	public TouchidModule() {
 		super();
 		init();
+	}
+
+	public static int getAuthenticationPolicy() {
+		return authenticationPolicy;
 	}
 
 	private void init() {

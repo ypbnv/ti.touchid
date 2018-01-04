@@ -176,7 +176,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 					KeyProperties.PURPOSE_ENCRYPT |
 							KeyProperties.PURPOSE_DECRYPT)
 					.setBlockModes(KeyProperties.BLOCK_MODE_CBC)
-					.setUserAuthenticationRequired(true)
+					.setUserAuthenticationRequired(TouchidModule.getAuthenticationPolicy() == TouchidModule.AUTHENTICATION_POLICY_BIOMETRICS)
 					.setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_PKCS7)
 					.build());
 			mKeyGenerator.generateKey();
@@ -215,7 +215,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 				error = error +", and no passcode detected";
 			}
 			response.put("code", TouchidModule.ERROR_PASSCODE_NOT_SET);
-		} else if (!hasFingerprints) {
+		} else if (policy == TouchidModule.AUTHENTICATION_POLICY_BIOMETRICS && !hasFingerprints) {
 			if (error.isEmpty()) {
 				error = error + "No enrolled fingerprints";
 			} else {
