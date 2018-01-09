@@ -22,9 +22,7 @@ import android.app.Activity;
 import android.hardware.fingerprint.FingerprintManager;
 import android.os.Build;
 
-@Kroll.module(name="Touchid", id="ti.touchid", propertyAccessors = {
-	TouchidModule.PROPERTY_AUTHENTICATION_POLICY
-})
+@Kroll.module(name="Touchid", id="ti.touchid")
 public class TouchidModule extends KrollModule
 {
 	private static final String TAG = "Touchid";
@@ -73,8 +71,14 @@ public class TouchidModule extends KrollModule
 		init();
 	}
 
-	public static int getAuthenticationPolicy() {
+	@Kroll.getProperty
+	public int getAuthenticationPolicy() {
 		return authenticationPolicy;
+	}
+
+	@Kroll.setProperty
+	public void setAuthenticationPolicy(int policy) {
+		authenticationPolicy = policy;
 	}
 
 	private void init() {
@@ -86,13 +90,6 @@ public class TouchidModule extends KrollModule
 				fingerprintHelperException = e.getCause();
 				Log.e(TAG, fingerprintHelperException.getMessage());
 			}
-		}
-	}
-
-	@Override
-	public void propertyChanged(String key, Object oldValue, Object newValue, KrollProxy proxy) {
-		if (key.equals(PROPERTY_AUTHENTICATION_POLICY)) {
-			authenticationPolicy = TiConvert.toInt(newValue);
 		}
 	}
 
