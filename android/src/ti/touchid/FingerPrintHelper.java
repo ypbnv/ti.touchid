@@ -248,6 +248,7 @@ public class FingerPrintHelper extends FingerprintManager.AuthenticationCallback
 
 		if (error.isEmpty()) {
 			response.put("canAuthenticate", true);
+			response.put("code", TouchidModule.SUCCESS);
 		} else {
 			response.put("canAuthenticate", false);
 			response.put("error", error);
