@@ -118,7 +118,6 @@ public class KeychainItemProxy extends KrollProxy {
 			authenticationCallback = new AuthenticationCallback() {
 				@Override
 				public void onAuthenticationError(int errorCode, CharSequence errString) {
-					super.onAuthenticationError(errorCode, errString);
 					if (errorCode != FingerprintManager.FINGERPRINT_ERROR_CANCELED) {
 						doEvents(errorCode, errString.toString());
 					}
@@ -126,19 +125,16 @@ public class KeychainItemProxy extends KrollProxy {
 
 				@Override
 				public void onAuthenticationHelp(int helpCode, CharSequence helpString) {
-					super.onAuthenticationHelp(helpCode, helpString);
 					doEvents(helpCode, helpString.toString());
 				}
 
 				@Override
 				public void onAuthenticationSucceeded(FingerprintManager.AuthenticationResult result) {
-					super.onAuthenticationSucceeded(result);
 					doEvents(0, null);
 				}
 
 				@Override
 				public void onAuthenticationFailed() {
-					super.onAuthenticationFailed();
 					doEvents(TouchidModule.ERROR_AUTHENTICATION_FAILED, "failed to authenticate fingerprint!");
 				}
 			};
@@ -251,7 +247,7 @@ public class KeychainItemProxy extends KrollProxy {
 
 			// fingerprint authentication
 			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, null, 0, authenticationCallback, null);
+				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(this), 0, authenticationCallback, null);
 			}
 
 		} catch (Exception e) {
@@ -264,6 +260,14 @@ public class KeychainItemProxy extends KrollProxy {
 			} else if (e instanceof KeyPermanentlyInvalidatedException) {
 				result.put("code", TouchidModule.ERROR_KEY_PERMANENTLY_INVALIDATED);
 				result.put("error", "key permantently invalidated!");
+
+				try {
+					if (keyStore != null) {
+						keyStore.deleteEntry(identifier);
+					}
+				} catch (Exception ex) {
+					// do nothing...
+				}
 			} else {
 				result.put("code", -1);
 				result.put("error", e.getMessage());
@@ -284,9 +288,14 @@ public class KeychainItemProxy extends KrollProxy {
 			fos.write(cipher.getIV());
 
 			// write encrypted data
-			CipherOutputStream cos = new CipherOutputStream(new BufferedOutputStream(fos), cipher);
-			cos.write(value.getBytes(StandardCharsets.UTF_8));
-			cos.close();
+			byte[] data = value.getBytes(StandardCharsets.UTF_8);
+			byte[] encryptedData = cipher.doFinal(data);
+			fos.write(encryptedData);
+
+			// close stream
+			if (fos != null) {
+				fos.close();
+			}
 
 			result.put("success", true);
 			result.put("code", 0);
@@ -306,14 +315,18 @@ public class KeychainItemProxy extends KrollProxy {
 			// read IV
 			byte[] iv = new byte[ivSize];
 			fin.read(iv, 0, iv.length);
-			fin.close();
+
+			// close stream
+			if (fin != null) {
+				fin.close();
+			}
 
 			// initialize decryption cipher
 			cipher.init(Cipher.DECRYPT_MODE, key, new IvParameterSpec(iv));
 
 			// fingerprint authentication
 			if (useFingerprintAuthentication()) {
-				fingerprintManager.authenticate(cryptoObject, null, 0, authenticationCallback, null);
+				fingerprintManager.authenticate(cryptoObject, FingerPrintHelper.cancellationSignal(this), 0, authenticationCallback, null);
 			}
 
 		} catch (Exception e) {
@@ -329,6 +342,14 @@ public class KeychainItemProxy extends KrollProxy {
 			} else if (e instanceof KeyPermanentlyInvalidatedException) {
 				result.put("code", TouchidModule.ERROR_KEY_PERMANENTLY_INVALIDATED);
 				result.put("error", "key permantently invalidated!");
+
+				try {
+					if (keyStore != null) {
+						keyStore.deleteEntry(identifier);
+					}
+				} catch (Exception ex) {
+					// do nothing...
+				}
 			} else {
 				result.put("error", e.getMessage());
 			}
@@ -346,23 +367,32 @@ public class KeychainItemProxy extends KrollProxy {
 			fin.skip(ivSize);
 
 			// read decrypted data
-			CipherInputStream cis = new CipherInputStream(new BufferedInputStream(fin), cipher);
+			BufferedInputStream bis = new BufferedInputStream(fin);
 			byte[] buffer = new byte[64];
 			int length = 0;
 			int total = 0;
 			String decrypted = "";
 
 			// since we only encrypt strings, this is acceptable
-			while ((length = cis.read(buffer)) != -1) {
+			while ((length = bis.read(buffer)) != -1) {
 				// obtain decrypted string from buffer
-				String part = new String(buffer, StandardCharsets.UTF_8);
+				byte[] encryptedData = cipher.doFinal(buffer, 0, length);
+				String part = new String(encryptedData, StandardCharsets.UTF_8);
 
 				// remove trailing terminators
-				part = part.substring(0, length).replaceFirst("\u0000+$", "");
+				part = part.replaceFirst("\u0000+$", "");
 
 				// append to decrypted string
 				decrypted += part;
 				total += length;
+			}
+
+			// close stream
+			if (bis != null) {
+				bis.close();
+			}
+			if (fin != null) {
+				fin.close();
 			}
 
 			result.put("success", true);
@@ -411,6 +441,11 @@ public class KeychainItemProxy extends KrollProxy {
 	private boolean exists() {
 		File file = context.getFileStreamPath(identifier + suffix);
 		return file != null && file.exists();
+	}
+
+	public void resetEvents() {
+		eventQueue.clear();
+		eventBusy = false;
 	}
 
 	@Kroll.method
@@ -478,8 +513,7 @@ public class KeychainItemProxy extends KrollProxy {
 								.setBlockModes(blockMode)
 								.setEncryptionPaddings(padding);
 
-						if ((accessibilityMode & (ACCESSIBLE_ALWAYS_THIS_DEVICE_ONLY | ACCESSIBLE_WHEN_PASSCODE_SET_THIS_DEVICE_ONLY)) != 0 ||
-								(accessControlMode & (ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
+						if ((accessControlMode & (ACCESS_CONTROL_TOUCH_ID_ANY | ACCESS_CONTROL_TOUCH_ID_CURRENT_SET)) != 0) {
 							spec.setUserAuthenticationRequired(true);
 						}
 						if ((accessControlMode & ACCESS_CONTROL_TOUCH_ID_CURRENT_SET) != 0 && Build.VERSION.SDK_INT >= 24) {
