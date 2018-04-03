@@ -476,8 +476,8 @@ properties:
     summary: |
          Note: This property is iOS only!
 
-        Allows cancel button title customization. A default localized title "Cancel" 
-        is used when this property is not defined or is set to empty string.
+         Allows cancel button title customization. A default localized title "Cancel" 
+         is used when this property is not defined or is set to empty string.
     type: String
     since: "6.1.0"
     osver: {ios: {min: "10.0"}}
